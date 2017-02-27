@@ -9,3 +9,8 @@ Currently implemented in the Docker container:
   * WebGoat       https://github.com/WebGoat/WebGoat
   * Juiceshop     https://github.com/bkimminich/juice-shop
 
+# TODO
+  * Railsgoat     https://github.com/OWASP/railsgoat
+  * django.NV     https://github.com/nVisium/django.nV
+  * Webgoat.net   https://github.com/jerryhoff/WebGoat.NET
+  
