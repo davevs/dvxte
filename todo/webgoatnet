@@ -5,5 +5,9 @@ RUN cd /usr/local/app/ && xbuild
 CMD cd /usr/local/app/WebGoat && xsp4
 
 
+Alternative solution with apache and mod_mono
+https://github.com/seif/docker-mono-apache/blob/master/Dockerfile
+
+
 
 docker run -t -p 8888:9000 webgoat
