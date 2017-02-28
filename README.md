@@ -8,9 +8,10 @@ Currently implemented in the Docker container:
   * DVWSockets    https://github.com/interference-security/DVWS
   * WebGoat       https://github.com/WebGoat/WebGoat
   * Juiceshop     https://github.com/bkimminich/juice-shop
-
-# TODO
   * Railsgoat     https://github.com/OWASP/railsgoat
+  
+# TODO
+
   * django.NV     https://github.com/nVisium/django.nV
   * Webgoat.net   https://github.com/jerryhoff/WebGoat.NET
   
