@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /usr/src/app
+cd /var/www/html/railsgoat
 rails server -b 0.0.0.0
