@@ -25,6 +25,7 @@ ENV BUNDLE_PATH="$GEM_HOME" \
 ENV PATH $BUNDLE_BIN:$PATH
 ENV BUNDLER_VERSION 1.14.4
 ENV RAILS_VERSION 4
+ENV PIP_FILE_SHA256 19dae841a150c86e2a09d475b5eb0602861f2a5b7761ec268049a662dbd2bd0c 
 
 # Copy startup files and config files
 COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
@@ -82,12 +83,14 @@ RUN buildDeps=' \
       default-jre-headless \
       libapache2-mod-php5 \
       libgdbm3 \
-      libyaml-dev \
+      libyaml-0-2 \
+#     libyaml-dev \
 	  mysql-server \
       nodejs \
       php5-mysql \
       php5-gd \
       procps \
+      python3 \
       pwgen \
       sqlite3 \
       supervisor \
@@ -120,15 +123,14 @@ RUN buildDeps=' \
 
 # install webgoat
 &&  mkdir $WWW/webgoat \
-&&  wget $WEBGOAT_URL -O $WWW/webgoat/webgoat.jar -q --show-progress \
-&&  echo "$WEBGOAT_FILE_SHA256 $WWW/webgoat/webgoat.jar" | sha256sum -c - \
+&&  wget $WEBGOAT_URL -P $WWW/webgoat/ -q --show-progress \
+&&  echo "$WEBGOAT_FILE_SHA256 $WWW/webgoat/$WEBGOAT_FILE" | sha256sum -c - \
 
 # install nodejs and juiceshop&&  
 &&  git clone https://github.com/davevs/juice-shop.git $WWW/juiceshop \
 &&  wget "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" -P /tmp/ -q --show-progress \
 &&  echo "$NODE_FILE_SHA256 /tmp/node-v$NODE_VERSION-linux-x64.tar.xz" | sha256sum -c - \
 &&  tar -xJf /tmp/"node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
-&&  rm "/tmp/node-v$NODE_VERSION-linux-x64.tar.xz" \
 &&  ln -s /usr/local/bin/node /usr/local/bin/nodejs \
 &&  cd $WWW/juiceshop \
 &&  npm install --production --unsafe-perm \
@@ -140,11 +142,10 @@ RUN buildDeps=' \
         echo 'install: --no-document'; \
         echo 'update: --no-document'; \
       } >> /usr/local/etc/gemrc \
-&&  wget -O /tmp/ruby.tar.xz "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" -q --show-progress \
-&&  echo "$RUBY_FILE_SHA256 /tmp/ruby.tar.xz" | sha256sum -c - \
+&&  wget "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" -P /tmp/ -q --show-progress \
+&&  echo "$RUBY_FILE_SHA256 /tmp/ruby-$RUBY_VERSION.tar.xz" | sha256sum -c - \
 &&  mkdir -p /usr/src/ruby \
-&&  tar -xJf /tmp/ruby.tar.xz -C /usr/src/ruby --strip-components=1 \
-&&  rm /tmp/ruby.tar.xz \
+&&  tar -xJf /tmp/ruby-$RUBY_VERSION.tar.xz -C /usr/src/ruby --strip-components=1 \
 &&  cd /usr/src/ruby \
 &&  { \
         echo '#define ENABLE_PATH_CHECK 0'; \
@@ -169,6 +170,19 @@ RUN buildDeps=' \
 &&  bundle install \
 &&  echo "cd /var/www/html/railsgoat && rake db:setup" >> /initialize.sh \
 
+# install django.NV
+&&  wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
+&&  echo "$PIP_FILE_SHA256 /tmp/get-pip.py" | sha256sum -c - \
+&&  python3 /tmp/get-pip.py \
+&&  git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
+&&  cd $WWW/djangonv \
+&&  pip install -r requirements.txt \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh.sh \
+&&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
+&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh \
+
+
 # cleanup
 &&  apt-get purge -y --auto-remove $buildDeps \
 &&  apt-get clean -y \
@@ -176,9 +190,10 @@ RUN buildDeps=' \
 &&  apt-get autoremove -y \
 &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
 
+
 # copy redirect files
 COPY www $WWW/
 
-EXPOSE 80 3000 4000 8080 8200
+EXPOSE 80 3000 4000 8000 8080 8200
 
 CMD ["/run.sh"]
