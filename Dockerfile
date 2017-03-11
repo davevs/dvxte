@@ -31,11 +31,12 @@ ENV PIP_FILE_SHA256 19dae841a150c86e2a09d475b5eb0602861f2a5b7761ec268049a662dbd2
 COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
 COPY startup/* /
 COPY supervisor/* /etc/supervisor/conf.d/
+COPY tmp/* /tmp/
 
 # Set execution rights on startup scripts
-RUN chmod +x /*.sh
+RUN chmod +x /*.sh \
 
-RUN for key in \
+&& for key in \
     9554F04D7259F04124DE6B476D5A82AC7E37093B \
     94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
     0034A06D9D9B0064CE8ADF6BF1747F4AD2306D93 \
@@ -47,10 +48,10 @@ RUN for key in \
     56730D5401028683275BD23C23EFEFE93C4CFFFE \
   ; do \
     gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
-  done 
+  done \
 
 # Define temporary stuff
-RUN buildDeps=' \
+&&  buildDeps=' \
       autoconf \
       bison \
       bzip2 \
@@ -71,6 +72,7 @@ RUN buildDeps=' \
       zlib1g-dev \
       make \
       ruby \
+	  unzip \
       wget \
       xz-utils \
       ' \
@@ -105,7 +107,7 @@ RUN buildDeps=' \
 &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh \
 
 # install & configure dvwa
-&&  git clone https://github.com/davevs/DVWA.git $WWW/dvwa \
+&&  git clone https://github.com/ethicalhack3r/DVWA.git $WWW/dvwa \
 &&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
 &&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/private_key' ] = ''/private_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
@@ -114,10 +116,10 @@ RUN buildDeps=' \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
 
 # install dvws(ervices)
-&&  git clone https://github.com/davevs/dvws-1.git $WWW/dvws \
+#&&  git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws \
 
 # install & configure dvws(ockets)
-&&  git clone https://github.com/davevs/DVWS.git $WWW/dvwsock \
+&&  git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh \
 
@@ -127,8 +129,8 @@ RUN buildDeps=' \
 &&  echo "$WEBGOAT_FILE_SHA256 $WWW/webgoat/$WEBGOAT_FILE" | sha256sum -c - \
 
 # install nodejs and juiceshop&&  
-&&  git clone https://github.com/davevs/juice-shop.git $WWW/juiceshop \
-&&  wget "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" -P /tmp/ -q --show-progress \
+&&  git clone https://github.com/bkimminich/juice-shop.git $WWW/juiceshop \
+&&  wget "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" -P /tmp/ \
 &&  echo "$NODE_FILE_SHA256 /tmp/node-v$NODE_VERSION-linux-x64.tar.xz" | sha256sum -c - \
 &&  tar -xJf /tmp/"node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
 &&  ln -s /usr/local/bin/node /usr/local/bin/nodejs \
@@ -142,7 +144,7 @@ RUN buildDeps=' \
         echo 'install: --no-document'; \
         echo 'update: --no-document'; \
       } >> /usr/local/etc/gemrc \
-&&  wget "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" -P /tmp/ -q --show-progress \
+&&  wget "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" -P /tmp/ \
 &&  echo "$RUBY_FILE_SHA256 /tmp/ruby-$RUBY_VERSION.tar.xz" | sha256sum -c - \
 &&  mkdir -p /usr/src/ruby \
 &&  tar -xJf /tmp/ruby-$RUBY_VERSION.tar.xz -C /usr/src/ruby --strip-components=1 \
@@ -178,10 +180,29 @@ RUN buildDeps=' \
 &&  cd $WWW/djangonv \
 &&  pip install -r requirements.txt \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
-&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh.sh \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
 &&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh \
 
+# install RIPS
+&& wget "https://sourceforge.net/projects/rips-scanner/files/rips-0.55.zip/download?use_mirror=svwh" -O /tmp/rips.zip \
+&& unzip /tmp/rips.zip -d $WWW \
+
+# install webmaven buggy bank
+&& apt-get install -y libapache2-mod-perl2 \
+&& apt-get install -y libcgi-pm-perl \
+&& a2enmod cgi \
+&& wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
+&& unzip /tmp/webmaven101.zip -d /tmp/webmaven \
+&& mv /tmp/webmaven/src/cgi-bin/* /usr/lib/cgi-bin/ \
+&& mv /tmp/webmaven/src/wm /usr/lib/ \
+&& mv /tmp/webmaven/src/webmaven_html/ $WWW/webmaven/ \
+&& sed -i 's/perl/\/usr\/bin\/perl/g' /usr/lib/cgi-bin/wm.cgi \
+&& sed -i "s/src=>'\//src=>'\/webmaven\//g" /usr/lib/cgi-bin/wm.cgi \
+&& sed -i 's/SRC="..\//SRC="\/webmaven\//g' /usr/lib/cgi-bin/templates/* \
+&& sed -i 's/HREF="..\//HREF="\/webmaven\//g' /usr/lib/cgi-bin/templates/* \
+&& chmod +x /usr/lib/cgi-bin/wm.cgi \
+&& chmod 777 /usr/lib/wm/ \
 
 # cleanup
 &&  apt-get purge -y --auto-remove $buildDeps \
@@ -190,10 +211,9 @@ RUN buildDeps=' \
 &&  apt-get autoremove -y \
 &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
 
-
-# copy redirect files
+# copy landing page and redirect files
 COPY www $WWW/
 
-EXPOSE 80 3000 4000 8000 8080 8200
+EXPOSE 80 1080 3000 4000 8000 8080 8200
 
 CMD ["/run.sh"]
