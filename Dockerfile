@@ -29,14 +29,8 @@ ENV PIP_FILE_SHA256 19dae841a150c86e2a09d475b5eb0602861f2a5b7761ec268049a662dbd2
 ENV RIPS_FILE_SHA256 8198e50cbdc9894583c5732ecc18c08a17f8aba60493d62e087f17eedcf13844
 ENV WEBMAVEN_FILE_SHA256 3129075db3420158b79d786091a2813534b5e1080b89a21c15567746ae8d1f46 
 
-# Copy startup files and config files
-COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
-COPY startup/* /
-COPY supervisor/* /etc/supervisor/conf.d/
-COPY tmp/* /tmp/
-
-# Set execution rights on startup scripts
-RUN chmod +x /*.sh \
+# create intialize script for configuration items during boot
+RUN touch /initialize.sh \
 
 && for key in \
     9554F04D7259F04124DE6B476D5A82AC7E37093B \
@@ -45,7 +39,6 @@ RUN chmod +x /*.sh \
     FD3A5288F042B6850C66B31F09FE44734EB7990E \
     71DCFD284A79C3B38668286BC97EC7A07EDE3FC1 \
     DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
-    B9AE9905FFD7803F25714661B63B535A4C206CA9 \
     C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
     56730D5401028683275BD23C23EFEFE93C4CFFFE \
   ; do \
@@ -106,7 +99,6 @@ RUN chmod +x /*.sh \
 &&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
 &&  echo 'session.save_path = "/tmp"' >> /etc/php5/apache2/php.ini \
 # Remove pre-installed mysql database and add password to startup script
-&&  rm -rf /var/lib/mysql/* \
 &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh \
 
 # install & configure dvwa
@@ -119,7 +111,7 @@ RUN chmod +x /*.sh \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
 
 # install dvws(ervices)
-#&&  git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws \
+&&  git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws \
 
 # install & configure dvws(ockets)
 &&  git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
@@ -194,7 +186,7 @@ RUN chmod +x /*.sh \
 
 # install webmaven buggy bank
 && wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
-&& echo "$WEBMAVEB_FILE_SHA256 /tmp/webmaven101.zip" | sha256sum -c - \
+&& echo "$WEBMAVEN_FILE_SHA256 /tmp/webmaven101.zip" | sha256sum -c - \
 && unzip /tmp/webmaven101.zip -d /tmp/webmaven \
 && mv /tmp/webmaven/src/cgi-bin/* /usr/lib/cgi-bin/ \
 && mv /tmp/webmaven/src/wm /usr/lib/ \
@@ -213,6 +205,14 @@ RUN chmod +x /*.sh \
 &&  apt-get autoclean -y \
 &&  apt-get autoremove -y \
 &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
+
+# Copy startup files and config files
+COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
+COPY startup/* /
+COPY supervisor/* /etc/supervisor/conf.d/
+
+# Set execution rights on startup scripts
+RUN chmod +x /*.sh
 
 # copy landing page and redirect files
 COPY www $WWW/
