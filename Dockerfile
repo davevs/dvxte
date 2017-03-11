@@ -26,6 +26,8 @@ ENV PATH $BUNDLE_BIN:$PATH
 ENV BUNDLER_VERSION 1.14.4
 ENV RAILS_VERSION 4
 ENV PIP_FILE_SHA256 19dae841a150c86e2a09d475b5eb0602861f2a5b7761ec268049a662dbd2bd0c 
+ENV RIPS_FILE_SHA256 8198e50cbdc9894583c5732ecc18c08a17f8aba60493d62e087f17eedcf13844
+ENV WEBMAVEN_FILE_SHA256 3129075db3420158b79d786091a2813534b5e1080b89a21c15567746ae8d1f46 
 
 # Copy startup files and config files
 COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
@@ -84,10 +86,11 @@ RUN chmod +x /*.sh \
       ca-certificates \
       default-jre-headless \
       libapache2-mod-php5 \
+      libapache2-mod-perl2 \
+      libcgi-pm-perl \
       libgdbm3 \
       libyaml-0-2 \
-#     libyaml-dev \
-	  mysql-server \
+      mysql-server \
       nodejs \
       php5-mysql \
       php5-gd \
@@ -186,13 +189,12 @@ RUN chmod +x /*.sh \
 
 # install RIPS
 && wget "https://sourceforge.net/projects/rips-scanner/files/rips-0.55.zip/download?use_mirror=svwh" -O /tmp/rips.zip \
+&&  echo "$RIPS_FILE_SHA256 /tmp/rips.zip" | sha256sum -c - \
 && unzip /tmp/rips.zip -d $WWW \
 
 # install webmaven buggy bank
-&& apt-get install -y libapache2-mod-perl2 \
-&& apt-get install -y libcgi-pm-perl \
-&& a2enmod cgi \
 && wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
+&& echo "$WEBMAVEB_FILE_SHA256 /tmp/webmaven101.zip" | sha256sum -c - \
 && unzip /tmp/webmaven101.zip -d /tmp/webmaven \
 && mv /tmp/webmaven/src/cgi-bin/* /usr/lib/cgi-bin/ \
 && mv /tmp/webmaven/src/wm /usr/lib/ \
@@ -203,6 +205,7 @@ RUN chmod +x /*.sh \
 && sed -i 's/HREF="..\//HREF="\/webmaven\//g' /usr/lib/cgi-bin/templates/* \
 && chmod +x /usr/lib/cgi-bin/wm.cgi \
 && chmod 777 /usr/lib/wm/ \
+&& a2enmod cgi \
 
 # cleanup
 &&  apt-get purge -y --auto-remove $buildDeps \
