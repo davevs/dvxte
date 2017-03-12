@@ -118,6 +118,12 @@ RUN touch /initialize.sh \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh \
 
+# install & configure NOWASP / mutillidae II
+&& git clone git://git.code.sf.net/p/mutillidae/git $WWW/mutillidae \
+&& sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
+&& echo "sed -i \"s/MySQLDatabasePassword = \\\"\\\"/MySQLDatabasePassword = \\\"\$PASS\\\"/g\" $WWW/mutillidae/classes/MySQLHandler.php" >> /initialize.sh \
+&& chmod +x $WWW/mutillidae/*.php \
+
 # install webgoat
 &&  mkdir $WWW/webgoat \
 &&  wget $WEBGOAT_URL -P $WWW/webgoat/ -q --show-progress \

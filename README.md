@@ -12,14 +12,15 @@ Currently the following training environments are implemented in the Docker cont
   * Railsgoat     https://github.com/OWASP/railsgoat
   * django.NV     https://github.com/nVisium/django.nV
   * Buggy Bank    https://www.mavensecurity.com/about/webmaven/
-
+  * Mutilidae II  https://sourceforge.net/projects/mutillidae/files/
+  
 Next to those, the following tools are installed:
   * Mailcatcher   https://mailcatcher.me/
   * Brakeman      http://brakemanscanner.org/
   * RIPS          https://sourceforge.net/projects/rips-scanner/files/
 
-Once build, the image currently has a size of roughly 1.3GB
+Once build, the image currently has a size of roughly 1.4GB
 
 # TODO
-  * Mutilidae II  https://sourceforge.net/projects/mutillidae/files/
-  * Webgoat.net   https://github.com/jerryhoff/WebGoat.NET
+  * Security Shepherd  https://github.com/OWASP/SecurityShepherd
+  * Webgoat.net        https://github.com/jerryhoff/WebGoat.NET
