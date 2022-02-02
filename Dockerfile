@@ -30,9 +30,9 @@ ENV RIPS_FILE_SHA256 8198e50cbdc9894583c5732ecc18c08a17f8aba60493d62e087f17eedcf
 ENV WEBMAVEN_FILE_SHA256 3129075db3420158b79d786091a2813534b5e1080b89a21c15567746ae8d1f46 
 
 # create intialize script for configuration items during boot
-RUN touch /initialize.sh \
+RUN touch /initialize.sh 
 
-&& for key in \
+RUN for key in \
     9554F04D7259F04124DE6B476D5A82AC7E37093B \
     94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
     0034A06D9D9B0064CE8ADF6BF1747F4AD2306D93 \
@@ -43,10 +43,10 @@ RUN touch /initialize.sh \
     56730D5401028683275BD23C23EFEFE93C4CFFFE \
   ; do \
     gpg --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
-  done \
+  done 
 
 # Define temporary stuff
-&&  buildDeps=' \
+RUN buildDeps=' \
       autoconf \
       bison \
       bzip2 \
@@ -70,9 +70,9 @@ RUN touch /initialize.sh \
 	  unzip \
       wget \
       xz-utils \
-      ' \
+      ' 
 # Install packages
-&&  apt-get update \
+RUN apt-get update \
 &&  apt-get install -y --no-install-recommends \
       $buildDeps \
       apache2 \
@@ -91,56 +91,56 @@ RUN touch /initialize.sh \
       python3 \
       pwgen \
       sqlite3 \
-      supervisor \
+      supervisor
 
 # apache config
-&&  echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # php config
-&&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
-&&  echo 'session.save_path = "/tmp"' >> /etc/php5/apache2/php.ini \
+RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
+&&  echo 'session.save_path = "/tmp"' >> /etc/php5/apache2/php.ini
 # Remove pre-installed mysql database and add password to startup script
-&&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh \
+RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
 # install & configure dvwa
-&&  git clone https://github.com/ethicalhack3r/DVWA.git $WWW/dvwa \
+RUN git clone https://github.com/ethicalhack3r/DVWA.git $WWW/dvwa \
 &&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
 &&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/private_key' ] = ''/private_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
 &&  sed -i 's/root/admin/g' $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/'default_security_level' ] = 'impossible'/'default_security_level' ] = 'low'/g" $WWW/dvwa/config/config.inc.php \
-&&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
+&&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
 # install dvws(ervices)
-&&  git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws \
+RUN git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws
 
 # install & configure dvws(ockets)
-&&  git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
+RUN git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
-&&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh \
+&&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
 # install & configure NOWASP / mutillidae II
-&& git clone git://git.code.sf.net/p/mutillidae/git $WWW/mutillidae \
+RUN git clone git://git.code.sf.net/p/mutillidae/git $WWW/mutillidae \
 && sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
 && echo "sed -i \"s/MySQLDatabasePassword = \\\"\\\"/MySQLDatabasePassword = \\\"\$PASS\\\"/g\" $WWW/mutillidae/classes/MySQLHandler.php" >> /initialize.sh \
-&& chmod +x $WWW/mutillidae/*.php \
+&& chmod +x $WWW/mutillidae/*.php
 
 # install webgoat
-&&  mkdir $WWW/webgoat \
+RUN mkdir $WWW/webgoat \
 &&  wget $WEBGOAT_URL -P $WWW/webgoat/ -q --show-progress \
-&&  echo "$WEBGOAT_FILE_SHA256 $WWW/webgoat/$WEBGOAT_FILE" | sha256sum -c - \
+&&  echo "$WEBGOAT_FILE_SHA256 $WWW/webgoat/$WEBGOAT_FILE" | sha256sum -c -
 
 # install nodejs and juiceshop&&  
-&&  git clone https://github.com/bkimminich/juice-shop.git $WWW/juiceshop \
+RUN git clone https://github.com/bkimminich/juice-shop.git $WWW/juiceshop \
 &&  wget "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" -P /tmp/ \
 &&  echo "$NODE_FILE_SHA256 /tmp/node-v$NODE_VERSION-linux-x64.tar.xz" | sha256sum -c - \
 &&  tar -xJf /tmp/"node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
 &&  ln -s /usr/local/bin/node /usr/local/bin/nodejs \
 &&  cd $WWW/juiceshop \
-&&  npm install --production --unsafe-perm \
+&&  npm install --production --unsafe-perm
 
 # install ruby, rail, and railsgoat
 ## skip installing gem documentation
-&&  mkdir -p /usr/local/etc \
+RUN mkdir -p /usr/local/etc \
 &&    { \
         echo 'install: --no-document'; \
         echo 'update: --no-document'; \
@@ -171,10 +171,10 @@ RUN touch /initialize.sh \
 &&  cd $WWW/railsgoat \
 &&  sed -i 's/2.2.2/2.2.3/' $WWW/railsgoat/Gemfile \
 &&  bundle install \
-&&  echo "cd /var/www/html/railsgoat && rake db:setup" >> /initialize.sh \
+&&  echo "cd /var/www/html/railsgoat && rake db:setup" >> /initialize.sh
 
 # install django.NV
-&&  wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
+RUN wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
 &&  echo "$PIP_FILE_SHA256 /tmp/get-pip.py" | sha256sum -c - \
 &&  python3 /tmp/get-pip.py \
 &&  git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
@@ -183,15 +183,15 @@ RUN touch /initialize.sh \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
-&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh \
+&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
 
 # install RIPS
-&& wget "https://sourceforge.net/projects/rips-scanner/files/rips-0.55.zip/download?use_mirror=svwh" -O /tmp/rips.zip \
+RUN wget "https://sourceforge.net/projects/rips-scanner/files/rips-0.55.zip/download?use_mirror=svwh" -O /tmp/rips.zip \
 &&  echo "$RIPS_FILE_SHA256 /tmp/rips.zip" | sha256sum -c - \
-&& unzip /tmp/rips.zip -d $WWW \
+&& unzip /tmp/rips.zip -d $WWW
 
 # install webmaven buggy bank
-&& wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
+RUN wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
 && echo "$WEBMAVEN_FILE_SHA256 /tmp/webmaven101.zip" | sha256sum -c - \
 && unzip /tmp/webmaven101.zip -d /tmp/webmaven \
 && mv /tmp/webmaven/src/cgi-bin/* /usr/lib/cgi-bin/ \
@@ -203,10 +203,10 @@ RUN touch /initialize.sh \
 && sed -i 's/HREF="..\//HREF="\/webmaven\//g' /usr/lib/cgi-bin/templates/* \
 && chmod +x /usr/lib/cgi-bin/wm.cgi \
 && chmod 777 /usr/lib/wm/ \
-&& a2enmod cgi \
+&& a2enmod cgi
 
 # cleanup
-&&  apt-get purge -y --auto-remove $buildDeps \
+RUN  apt-get purge -y --auto-remove $buildDeps \
 &&  apt-get clean -y \
 &&  apt-get autoclean -y \
 &&  apt-get autoremove -y \
