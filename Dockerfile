@@ -5,10 +5,6 @@ MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 ENV DEBIAN_FRONTEND noninteractive
 ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
-ENV WEBGOAT_VERSION 7.1
-ENV WEBGOAT_FILE webgoat-container-$WEBGOAT_VERSION-exec.jar 
-ENV WEBGOAT_URL https://github.com/WebGoat/WebGoat/releases/download/$WEBGOAT_VERSION/$WEBGOAT_FILE 
-ENV WEBGOAT_FILE_SHA256 cc531e1e5d5b21394963f2a9bde00e83785ba1a94340bd13bde83dc24e23b77b
 ENV WWW /var/www/html
 ENV NPM_CONFIG_LOGLEVEL info
 ENV NODE_VERSION 6.10.0
@@ -127,12 +123,12 @@ RUN git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
 # install dvws(ervices)
 RUN git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws
 
-# install webgoat
+# install webgoat & webwolf
 RUN mkdir $WWW/webgoat \
-&&  wget $WEBGOAT_URL -P $WWW/webgoat/ -q --show-progress \
-&&  echo "$WEBGOAT_FILE_SHA256 $WWW/webgoat/$WEBGOAT_FILE" | sha256sum -c -
+&&  wget https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar -P $WWW/webgoat/ -q --show-progress \
+&&  wget https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar -P $WWW/webgoat/ -q --show-progress
 
-# install nodejs and juiceshop&&  
+# install nodejs and juiceshop  
 RUN git clone https://github.com/bkimminich/juice-shop.git $WWW/juiceshop \
 &&  wget "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" -P /tmp/ \
 &&  echo "$NODE_FILE_SHA256 /tmp/node-v$NODE_VERSION-linux-x64.tar.xz" | sha256sum -c - \
@@ -226,6 +222,15 @@ RUN chmod +x /*.sh
 # copy landing page and redirect files
 COPY www $WWW/
 
-EXPOSE 80 1080 3000 4000 8000 8080 8200
+# open ports
+#   80 - DVWA, Mutillidae, DVWServices, DVWSockets, BuggyBank, Rips
+# 1080 - Mailcatcher
+# 3000 - RailsGoat
+# 4000 - Juiceshop
+# 8000 - django.NV
+# 8080 - 
+# 8200 - WebGoat
+# 9090 - WebWolf
+EXPOSE 80 1080 3000 4000 8000 8080 8200 9090
 
 CMD ["/run.sh"]
