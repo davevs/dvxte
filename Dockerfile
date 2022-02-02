@@ -70,12 +70,13 @@ RUN buildDeps=' \
 	  unzip \
       wget \
       xz-utils \
-      ' 
+      ' \
 # Install packages
-RUN apt-get update \
+&& apt-get update \
 &&  apt-get install -y --no-install-recommends \
       $buildDeps \
       apache2 \
+      apt-utils \
       ca-certificates \
       default-jre-headless \
       libapache2-mod-php5 \
