@@ -103,27 +103,29 @@ RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache
 RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
 # install & configure dvwa
-RUN git clone https://github.com/ethicalhack3r/DVWA.git $WWW/dvwa \
+RUN git clone https://github.com/digininja/DVWA.git $WWW/dvwa \
+&&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
 &&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
 &&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/private_key' ] = ''/private_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
-&&  sed -i 's/root/admin/g' $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/'default_security_level' ] = 'impossible'/'default_security_level' ] = 'low'/g" $WWW/dvwa/config/config.inc.php \
+&&  echo "sed -i \"s/'db_user' ]     = 'dvwa';/'db_user' ]     = 'admin';/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
-# install dvws(ervices)
-RUN git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws
+# install & configure NOWASP / mutillidae II
+RUN git clone https://github.com/webpwnized/mutillidae.git $WWW/mutillidae \
+&& sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
+&& sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
+&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_USERNAME', '\$PASS')/g\" $WWW/includes/database-config.inc" >> /initialize.sh\
+&& chmod +x $WWW/mutillidae/*.php
 
 # install & configure dvws(ockets)
 RUN git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
-# install & configure NOWASP / mutillidae II
-RUN git clone git://git.code.sf.net/p/mutillidae/git $WWW/mutillidae \
-&& sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
-&& echo "sed -i \"s/MySQLDatabasePassword = \\\"\\\"/MySQLDatabasePassword = \\\"\$PASS\\\"/g\" $WWW/mutillidae/classes/MySQLHandler.php" >> /initialize.sh \
-&& chmod +x $WWW/mutillidae/*.php
+# install dvws(ervices)
+RUN git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws
 
 # install webgoat
 RUN mkdir $WWW/webgoat \
