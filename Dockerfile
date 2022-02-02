@@ -1,5 +1,5 @@
 FROM debian:jessie
-MAINTAINER Dave van Stein <dvanstein@xebia.com>
+MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 
 # CONFIGURATION SETTINGS
 ENV DEBIAN_FRONTEND noninteractive
@@ -42,7 +42,7 @@ RUN touch /initialize.sh \
     C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
     56730D5401028683275BD23C23EFEFE93C4CFFFE \
   ; do \
-    gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
+    gpg --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
   done \
 
 # Define temporary stuff
