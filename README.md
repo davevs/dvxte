@@ -1,5 +1,7 @@
-# Damn Vulnerable Xebia Training Environment
+# Current status: broken & refacturing
+I'm trying to get this project working again.
 
+## Damn Vulnerable Xebia Training Environment
 DVXTE is a docker container with several vulnerable applications.
 By using a docker container it's easy to setup and can easily be reset to it's starting point.
 
@@ -20,7 +22,3 @@ Next to those, the following tools are installed:
   * RIPS          https://sourceforge.net/projects/rips-scanner/files/
 
 Once build, the image currently has a size of roughly 1.4GB
-
-# TODO
-  * Security Shepherd  https://github.com/OWASP/SecurityShepherd
-  * Webgoat.net        https://github.com/jerryhoff/WebGoat.NET
