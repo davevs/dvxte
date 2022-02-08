@@ -14,7 +14,7 @@ ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
 ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
 ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
 # Juiceshop
-ENV NODE_VERSION 0.12.22.10
+ENV NODE_VERSION 14
 ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
 ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-linux-x64.tar.gz
 ENV REPO_JUICESHOP https://github.com/bkimminich/juice-shop.git
@@ -64,7 +64,6 @@ RUN buildDeps=' \
       libxslt-dev \
       zlib1g-dev \
       make \
-      npm \
       ruby \
 	    unzip \
       wget \
@@ -134,26 +133,19 @@ RUN mkdir $WWW/webgoat
 ADD ${RELEASE_WEBGOAT} $WWW/webgoat/webgoat.jar
 ADD ${RELEASE_WEBWOLF} $WWW/webgoat/webwolf.jar
 
-# Install nvm with node and npm
+# Install nvm, node, and npm
 ADD ${RELEASE_NVM} /tmp/
-RUN /tmp/install.sh \
-&& nvm install $node_version \
-&& nvm alias default $NODE_VERSION \
-&& nvm use default
+RUN chmod +x /tmp/install.sh \
+&& /tmp/install.sh
+RUN ln -s /root/.nvm/nvm.sh /bin/nvm \
+&&  ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /bin/npm \
+&&  ln -s /root/.nvm/versions/node/v14.19.0/bin/node /bin/node
 
-# BREAK
-ADD https://foobar.xyzw .
-
-# install nodejs
-ENV NPM_CONFIG_LOGLEVEL info
-ADD ${release_nodeljs} /tmp/nodejs.tgz
-RUN tar -xzf /tmp/nodejs.tgz -C /usr/local --strip-components=1 \
-&& ln -s /usr/local/bin/node /usr/local/bin/nodejs \
-&& rm /tmp/nodejs.tgz
-
-RUN git clone ${repo_juiceshop} $WWW/juiceshop \
-&&  cd $WWW/juiceshop \
-&&  npm install --production --unsafe-perm
+# temp juiceshop install
+ADD https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz /tmp/juiceshop.tgz
+RUN tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
+&& mv $WWW/juice-shop* $WWW/juiceshop \
+&& rm -r /tmp/juiceshop.tgz
 
 # install ruby, rail, and railsgoat
 ## skip installing gem documentation
@@ -199,9 +191,11 @@ RUN mkdir -p /usr/src/ruby \
 &&  bundle install \
 &&  echo "cd /var/www/html/railsgoat && rake db:setup" >> /initialize.sh
 
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
+
 # install django.NV
 RUN wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
-&&  echo "$PIP_FILE_SHA256 /tmp/get-pip.py" | sha256sum -c - \
 &&  python3 /tmp/get-pip.py \
 &&  git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
 &&  cd $WWW/djangonv \
@@ -211,14 +205,18 @@ RUN wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
 &&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
 
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
+
 # install RIPS
 RUN wget "https://sourceforge.net/projects/rips-scanner/files/rips-0.55.zip/download?use_mirror=svwh" -O /tmp/rips.zip \
-&&  echo "$RIPS_FILE_SHA256 /tmp/rips.zip" | sha256sum -c - \
 && unzip /tmp/rips.zip -d $WWW
+
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
 
 # install webmaven buggy bank
 RUN wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
-&& echo "$WEBMAVEN_FILE_SHA256 /tmp/webmaven101.zip" | sha256sum -c - \
 && unzip /tmp/webmaven101.zip -d /tmp/webmaven \
 && mv /tmp/webmaven/src/cgi-bin/* /usr/lib/cgi-bin/ \
 && mv /tmp/webmaven/src/wm /usr/lib/ \
@@ -230,6 +228,9 @@ RUN wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
 && chmod +x /usr/lib/cgi-bin/wm.cgi \
 && chmod 777 /usr/lib/wm/ \
 && a2enmod cgi
+
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
 
 # cleanup
 RUN  apt-get purge -y --auto-remove $buildDeps \
@@ -253,7 +254,7 @@ COPY www $WWW/
 #   80 - DVWA, Mutillidae, DVWServices, DVWSockets, BuggyBank, Rips
 # 1080 - Mailcatcher
 # 3000 - RailsGoat
-# 4000 - Juiceshop
+# 4000 - Juiceshop~
 # 8000 - django.NV
 # 8080 - 
 # 8200 - WebGoat
