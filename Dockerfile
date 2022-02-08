@@ -127,7 +127,7 @@ RUN git clone ${REPO_DVWSOCK} $WWW/dvwsock \
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
 # install dvws(ervices)
-RUN git clone ${REPO_DVWSERV_OLD}} $WWW/dvws
+RUN git clone ${REPO_DVWSERV_OLD} $WWW/dvws
 
 # install webgoat & webwolf
 RUN mkdir $WWW/webgoat
