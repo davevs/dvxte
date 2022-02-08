@@ -4,7 +4,7 @@ DVXTE is a docker container with several vulnerable applications.
 By using a docker container it's easy to setup and can easily be reset to it's starting point.
 
 Currently the following training environments are implemented in the Docker container:
-  * DVWA          https://github.com/ethicalhack3r/DVWA
+  * DVWA          https://github.com/digininja/DVWA
   * DVWServices   https://github.com/snoopysecurity/dvws
   * DVWSockets    https://github.com/interference-security/DVWS
   * WebGoat       https://github.com/WebGoat/WebGoat
@@ -12,7 +12,7 @@ Currently the following training environments are implemented in the Docker cont
   * Railsgoat     https://github.com/OWASP/railsgoat
   * django.NV     https://github.com/nVisium/django.nV
   * Buggy Bank    https://www.mavensecurity.com/about/webmaven/
-  * Mutilidae II  https://sourceforge.net/projects/mutillidae/files/
+  * Mutilidae II  https://github.com/webpwnized/mutillidae.git
   
 Next to those, the following tools are installed:
   * Mailcatcher   https://mailcatcher.me/

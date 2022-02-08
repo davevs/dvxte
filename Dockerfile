@@ -105,7 +105,7 @@ RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache
 RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
 # install & configure dvwa
-RUN git clone ${REPO_DVWA}} $WWW/dvwa \
+RUN git clone ${REPO_DVWA} $WWW/dvwa \
 &&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
 &&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
 &&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
@@ -115,14 +115,14 @@ RUN git clone ${REPO_DVWA}} $WWW/dvwa \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
 # install & configure NOWASP / mutillidae II
-RUN git clone ${REPO_NOWASP}} $WWW/mutillidae \
+RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
 && sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
 && sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
 && echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_USERNAME', '\$PASS')/g\" $WWW/includes/database-config.inc" >> /initialize.sh\
 && chmod +x $WWW/mutillidae/*.php
 
 # install & configure dvws(ockets)
-RUN git clone ${REPO_DVWSOCK}} $WWW/dvwsock \
+RUN git clone ${REPO_DVWSOCK} $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
@@ -131,11 +131,11 @@ RUN git clone ${REPO_DVWSERV_OLD}} $WWW/dvws
 
 # install webgoat & webwolf
 RUN mkdir $WWW/webgoat
-ADD ${RELEASE_WEBGOAT}} $WWW/webgoat/webgoat.jar
-ADD ${RELEASE_WEBWOLF}} $WWW/webgoat/webwolf.jar
+ADD ${RELEASE_WEBGOAT} $WWW/webgoat/webgoat.jar
+ADD ${RELEASE_WEBWOLF} $WWW/webgoat/webwolf.jar
 
 # Install nvm with node and npm
-ADD ${RELEASE_NVM}} /tmp/
+ADD ${RELEASE_NVM} /tmp/
 RUN /tmp/install.sh \
 && nvm install $node_version \
 && nvm alias default $NODE_VERSION \
