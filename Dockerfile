@@ -1,33 +1,35 @@
 FROM debian:jessie
 MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 
-# CONFIGURATION SETTINGS
-ENV DEBIAN_FRONTEND noninteractive
-ENV PHP_UPLOAD_MAX_FILESIZE 10M
-ENV PHP_POST_MAX_SIZE 10M
-ENV WWW /var/www/html
-ENV NPM_CONFIG_LOGLEVEL info
-ENV NODE_VERSION 6.10.0
-ENV NODE_FILE_SHA256 0f28bef128ef8ce2d9b39b9e46d2ebaeaa8a301f57726f2eba46da194471f224
-ENV RUBY_MAJOR 2.3
-ENV RUBY_VERSION 2.3.3
-ENV RUBY_FILE_SHA256 1a4fa8c2885734ba37b97ffdb4a19b8fba0e8982606db02d936e65bac07419dc 
-ENV RUBYGEMS_VERSION 2.6.10
-ENV GEM_HOME /usr/local/bundle
-ENV BUNDLE_PATH="$GEM_HOME" \
-    BUNDLE_BIN="$GEM_HOME/bin" \
-    BUNDLE_SILENCE_ROOT_WARNING=1 \
-    BUNDLE_APP_CONFIG="$GEM_HOME"
-ENV PATH $BUNDLE_BIN:$PATH
-ENV BUNDLER_VERSION 1.14.4
-ENV RAILS_VERSION 4
-ENV PIP_FILE_SHA256 19dae841a150c86e2a09d475b5eb0602861f2a5b7761ec268049a662dbd2bd0c 
-ENV RIPS_FILE_SHA256 8198e50cbdc9894583c5732ecc18c08a17f8aba60493d62e087f17eedcf13844
-ENV WEBMAVEN_FILE_SHA256 3129075db3420158b79d786091a2813534b5e1080b89a21c15567746ae8d1f46 
+# --- URLs for packages ---
+# Damn Vulnerable Web Application
+ENV REPO_DVWA https://github.com/digininja/DVWA.git
+# NOWASP / Mutillidea II
+ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
+# Damn Vulnerbale Web Sockets
+ENV REPO_DVWSOCK https://github.com/interference-security/DVWS.git
+# Damn Vulnerable Web Serivces (original version)
+ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
+# Webgoat & Webwolf
+ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
+ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
+# Juiceshop
+ENV NODE_VERSION 0.12.22.10
+ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
+ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-linux-x64.tar.gz
+ENV REPO_JUICESHOP https://github.com/bkimminich/juice-shop.git
+# Railsgoat
+ENV RELEASE_RUBY http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
+
+
+
+
+# ----------------------------
 
 # create intialize script for configuration items during boot
 RUN touch /initialize.sh 
 
+# add keyservers
 RUN for key in \
     9554F04D7259F04124DE6B476D5A82AC7E37093B \
     94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
@@ -42,6 +44,7 @@ RUN for key in \
   done 
 
 # Define temporary stuff
+ENV DEBIAN_FRONTEND noninteractive
 RUN buildDeps=' \
       autoconf \
       bison \
@@ -57,23 +60,21 @@ RUN buildDeps=' \
       libncurses-dev \
       libreadline-dev \
       libsqlite3-dev \
-      libssl-dev \
       libxml2-dev \
       libxslt-dev \
       zlib1g-dev \
       make \
+      npm \
       ruby \
-	  unzip \
+	    unzip \
       wget \
       xz-utils \
       ' \
 # Install packages
 && apt-get update \
-&&  apt-get install -y --no-install-recommends \
+&& apt-get install -y --no-install-recommends \
       $buildDeps \
       apache2 \
-      apt-utils \
-      ca-certificates \
       default-jre-headless \
       libapache2-mod-php5 \
       libapache2-mod-perl2 \
@@ -88,9 +89,14 @@ RUN buildDeps=' \
       python3 \
       pwgen \
       sqlite3 \
-      supervisor
+      supervisor \
+# get the latest updates
+&& apt-get upgrade
 
-# apache config
+# configure apache, php, mysql
+ENV PHP_UPLOAD_MAX_FILESIZE 10M
+ENV PHP_POST_MAX_SIZE 10M
+ENV WWW /var/www/html
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # php config
 RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
@@ -99,7 +105,7 @@ RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache
 RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
 # install & configure dvwa
-RUN git clone https://github.com/digininja/DVWA.git $WWW/dvwa \
+RUN git clone ${REPO_DVWA}} $WWW/dvwa \
 &&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
 &&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
 &&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
@@ -109,45 +115,66 @@ RUN git clone https://github.com/digininja/DVWA.git $WWW/dvwa \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
 # install & configure NOWASP / mutillidae II
-RUN git clone https://github.com/webpwnized/mutillidae.git $WWW/mutillidae \
+RUN git clone ${REPO_NOWASP}} $WWW/mutillidae \
 && sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
 && sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
 && echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_USERNAME', '\$PASS')/g\" $WWW/includes/database-config.inc" >> /initialize.sh\
 && chmod +x $WWW/mutillidae/*.php
 
 # install & configure dvws(ockets)
-RUN git clone https://github.com/interference-security/DVWS.git $WWW/dvwsock \
+RUN git clone ${REPO_DVWSOCK}} $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
 # install dvws(ervices)
-RUN git clone https://github.com/snoopysecurity/dvws.git $WWW/dvws
+RUN git clone ${REPO_DVWSERV_OLD}} $WWW/dvws
 
 # install webgoat & webwolf
-RUN mkdir $WWW/webgoat \
-&&  wget https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar -P $WWW/webgoat/ -q --show-progress \
-&&  wget https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar -P $WWW/webgoat/ -q --show-progress
+RUN mkdir $WWW/webgoat
+ADD ${RELEASE_WEBGOAT}} $WWW/webgoat/webgoat.jar
+ADD ${RELEASE_WEBWOLF}} $WWW/webgoat/webwolf.jar
 
-# install nodejs and juiceshop  
-RUN git clone https://github.com/bkimminich/juice-shop.git $WWW/juiceshop \
-&&  wget "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" -P /tmp/ \
-&&  echo "$NODE_FILE_SHA256 /tmp/node-v$NODE_VERSION-linux-x64.tar.xz" | sha256sum -c - \
-&&  tar -xJf /tmp/"node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
-&&  ln -s /usr/local/bin/node /usr/local/bin/nodejs \
+# Install nvm with node and npm
+ADD ${RELEASE_NVM}} /tmp/
+RUN /tmp/install.sh \
+&& nvm install $node_version \
+&& nvm alias default $NODE_VERSION \
+&& nvm use default
+
+# BREAK
+ADD https://foobar.xyzw .
+
+# install nodejs
+ENV NPM_CONFIG_LOGLEVEL info
+ADD ${release_nodeljs} /tmp/nodejs.tgz
+RUN tar -xzf /tmp/nodejs.tgz -C /usr/local --strip-components=1 \
+&& ln -s /usr/local/bin/node /usr/local/bin/nodejs \
+&& rm /tmp/nodejs.tgz
+
+RUN git clone ${repo_juiceshop} $WWW/juiceshop \
 &&  cd $WWW/juiceshop \
 &&  npm install --production --unsafe-perm
 
 # install ruby, rail, and railsgoat
 ## skip installing gem documentation
+
+ENV RUBYGEMS_VERSION 2.6.10
+ENV GEM_HOME /usr/local/bundle
+ENV BUNDLE_PATH="$GEM_HOME" \
+    BUNDLE_BIN="$GEM_HOME/bin" \
+    BUNDLE_SILENCE_ROOT_WARNING=1 \
+    BUNDLE_APP_CONFIG="$GEM_HOME"
+ENV PATH $BUNDLE_BIN:$PATH
+ENV BUNDLER_VERSION 1.14.4
+ENV RAILS_VERSION 4
 RUN mkdir -p /usr/local/etc \
 &&    { \
         echo 'install: --no-document'; \
         echo 'update: --no-document'; \
-      } >> /usr/local/etc/gemrc \
-&&  wget "https://cache.ruby-lang.org/pub/ruby/${RUBY_MAJOR%-rc}/ruby-$RUBY_VERSION.tar.xz" -P /tmp/ \
-&&  echo "$RUBY_FILE_SHA256 /tmp/ruby-$RUBY_VERSION.tar.xz" | sha256sum -c - \
-&&  mkdir -p /usr/src/ruby \
-&&  tar -xJf /tmp/ruby-$RUBY_VERSION.tar.xz -C /usr/src/ruby --strip-components=1 \
+      } >> /usr/local/etc/gemrc
+ADD ${relaease_ruby} /tmp/ruby.tgz
+RUN mkdir -p /usr/src/ruby \
+&&  tar -xzf /tmp/rubytgz -C /usr/src/ruby --strip-components=1 \
 &&  cd /usr/src/ruby \
 &&  { \
         echo '#define ENABLE_PATH_CHECK 0'; \
