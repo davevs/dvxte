@@ -1,34 +1,8 @@
 FROM debian:jessie
 MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 
-# --- URLs for packages ---
-# Damn Vulnerable Web Application
-ENV REPO_DVWA https://github.com/digininja/DVWA.git
-# NOWASP / Mutillidea II
-ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
-# Damn Vulnerbale Web Sockets
-ENV REPO_DVWSOCK https://github.com/interference-security/DVWS.git
-# Damn Vulnerable Web Serivces (original version)
-ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
-# Webgoat & Webwolf
-ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
-ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
-# Juiceshop
-ENV NODE_VERSION 14
-ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
-ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-linux-x64.tar.gz
-ENV REPO_JUICESHOP https://github.com/bkimminich/juice-shop.git
-# Railsgoat
-ENV RELEASE_RUBY http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
-
-
-
-
-# ----------------------------
-
-# create intialize script for configuration items during boot
-RUN touch /initialize.sh 
-
+# --- Set up base environment ---
+ENV DEBIAN_FRONTEND noninteractive
 # add keyservers
 RUN for key in \
     9554F04D7259F04124DE6B476D5A82AC7E37093B \
@@ -43,12 +17,16 @@ RUN for key in \
     gpg --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
   done 
 
-# Define temporary stuff
-ENV DEBIAN_FRONTEND noninteractive
-RUN buildDeps=' \
+# Install build environment and dependencies
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+      apache2 \
       autoconf \
       bison \
+      build-essential \
       bzip2 \
+      curl \
+      default-jre-headless \
       g++ \
       gcc \
       git \
@@ -62,24 +40,13 @@ RUN buildDeps=' \
       libsqlite3-dev \
       libxml2-dev \
       libxslt-dev \
-      zlib1g-dev \
-      make \
-      ruby \
-	    unzip \
-      wget \
-      xz-utils \
-      ' \
-# Install packages
-&& apt-get update \
-&& apt-get install -y --no-install-recommends \
-      $buildDeps \
-      apache2 \
-      default-jre-headless \
       libapache2-mod-php5 \
       libapache2-mod-perl2 \
       libcgi-pm-perl \
+      libcurl4-openssl-dev \
       libgdbm3 \
-      libyaml-0-2 \
+      libssl-dev \
+      libyaml-dev \
       mysql-server \
       nodejs \
       php5-mysql \
@@ -87,10 +54,21 @@ RUN buildDeps=' \
       procps \
       python3 \
       pwgen \
+      software-properties-common \
       sqlite3 \
       supervisor \
+      make \
+      ruby \
+	    unzip \
+      wget \
+      xz-utils \
+      zlib1g-dev \
 # get the latest updates
 && apt-get upgrade
+
+# --- Install DXTE ----
+# create intialize script for configuration items during boot
+RUN touch /initialize.sh 
 
 # configure apache, php, mysql
 ENV PHP_UPLOAD_MAX_FILESIZE 10M
@@ -104,6 +82,7 @@ RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache
 RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
 # install & configure dvwa
+ENV REPO_DVWA https://github.com/digininja/DVWA.git
 RUN git clone ${REPO_DVWA} $WWW/dvwa \
 &&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
 &&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
@@ -114,6 +93,7 @@ RUN git clone ${REPO_DVWA} $WWW/dvwa \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
 # install & configure NOWASP / mutillidae II
+ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
 RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
 && sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
 && sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
@@ -121,20 +101,27 @@ RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
 && chmod +x $WWW/mutillidae/*.php
 
 # install & configure dvws(ockets)
+ENV REPO_DVWSOCK https://github.com/interference-security/DVWS.git
 RUN git clone ${REPO_DVWSOCK} $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
 # install dvws(ervices)
+ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
 RUN git clone ${REPO_DVWSERV_OLD} $WWW/dvws
 
 # install webgoat & webwolf
+ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
+ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
 RUN mkdir $WWW/webgoat
-ADD ${RELEASE_WEBGOAT} $WWW/webgoat/webgoat.jar
-ADD ${RELEASE_WEBWOLF} $WWW/webgoat/webwolf.jar
+RUN curl -L ${RELEASE_WEBGOAT} -o $WWW/webgoat/webgoat.jar 
+RUN curl -L ${RELEASE_WEBWOLF} -o $WWW/webgoat/webwolf.jar 
 
 # Install nvm, node, and npm
-ADD ${RELEASE_NVM} /tmp/
+ENV NODE_VERSION 14
+ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
+ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-linux-x64.tar.gz
+RUN curl ${RELEASE_NVM} -o /tmp/install.sh
 RUN chmod +x /tmp/install.sh \
 && /tmp/install.sh
 RUN ln -s /root/.nvm/nvm.sh /bin/nvm \
@@ -142,14 +129,36 @@ RUN ln -s /root/.nvm/nvm.sh /bin/nvm \
 &&  ln -s /root/.nvm/versions/node/v14.19.0/bin/node /bin/node
 
 # temp juiceshop install
-ADD https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz /tmp/juiceshop.tgz
+ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz
+RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz
 RUN tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
 && mv $WWW/juice-shop* $WWW/juiceshop \
 && rm -r /tmp/juiceshop.tgz
 
-# install ruby, rail, and railsgoat
-## skip installing gem documentation
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
 
+# install ruby, rail, and railsgoat
+# use https://www.rosehosting.com/blog/how-to-install-ruby-on-rails-on-debian-11/
+RUN npm install --global yarn
+
+
+
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
+
+# temp stuff
+# RUN curl -sL https://deb.nodesource.com/setup_lts.x | - \
+# && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+# && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+# && apt-get update \
+# && apt-get install -y --no-install-recommends \
+#       yarn \
+
+
+ENV RELEASE_RUBY http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
+
+# install ruby, rail, and railsgoat (old version)
 ENV RUBYGEMS_VERSION 2.6.10
 ENV GEM_HOME /usr/local/bundle
 ENV BUNDLE_PATH="$GEM_HOME" \
@@ -164,7 +173,7 @@ RUN mkdir -p /usr/local/etc \
         echo 'install: --no-document'; \
         echo 'update: --no-document'; \
       } >> /usr/local/etc/gemrc
-ADD ${relaease_ruby} /tmp/ruby.tgz
+ADD ${RELEASE_RUBY} /tmp/ruby.tgz
 RUN mkdir -p /usr/src/ruby \
 &&  tar -xzf /tmp/rubytgz -C /usr/src/ruby --strip-components=1 \
 &&  cd /usr/src/ruby \
@@ -184,8 +193,15 @@ RUN mkdir -p /usr/src/ruby \
 &&  gem install bundler --version "$BUNDLER_VERSION" \
 &&  mkdir -p "$GEM_HOME" "$BUNDLE_BIN" \
 &&  chmod 777 "$GEM_HOME" "$BUNDLE_BIN" \
-&&  gem install rails --version "$RAILS_VERSION" \
-&&  git clone https://github.com/OWASP/railsgoat.git $WWW/railsgoat \
+&&  gem install rails --version "$RAILS_VERSION"
+
+# BREAK FOR DEBUG
+ADD https://foobar.xyzw .
+
+
+# specific version:
+# git clone --branch <branchname> <remote-repo-url>
+RUN git clone https://github.com/OWASP/railsgoat.git $WWW/railsgoat \
 &&  cd $WWW/railsgoat \
 &&  sed -i 's/2.2.2/2.2.3/' $WWW/railsgoat/Gemfile \
 &&  bundle install \
@@ -233,8 +249,7 @@ RUN wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
 ADD https://foobar.xyzw .
 
 # cleanup
-RUN  apt-get purge -y --auto-remove $buildDeps \
-&&  apt-get clean -y \
+RUN  apt-get clean -y \
 &&  apt-get autoclean -y \
 &&  apt-get autoremove -y \
 &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
@@ -254,7 +269,7 @@ COPY www $WWW/
 #   80 - DVWA, Mutillidae, DVWServices, DVWSockets, BuggyBank, Rips
 # 1080 - Mailcatcher
 # 3000 - RailsGoat
-# 4000 - Juiceshop~
+# 4000 - Juiceshop
 # 8000 - django.NV
 # 8080 - 
 # 8200 - WebGoat
