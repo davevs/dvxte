@@ -7,7 +7,7 @@ In 2022 @commjoen challenged me to revamp the project, so here we are :)
 
 ## Note
 This is a very bad idea and probably one of the best examples of how not to use docker. Nevertheless:
-![it runs](images/itruns.jpg)
+![it runs](assets/itruns.jpg)
 
 
 ## Damn Vulnerable Xebia Training Environment
