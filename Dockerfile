@@ -54,6 +54,7 @@ RUN apt-get update \
       procps \
       python3 \
       pwgen \
+      shared-mime-info \
       software-properties-common \
       sqlite3 \
       supervisor \
@@ -124,9 +125,11 @@ ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-
 RUN curl ${RELEASE_NVM} -o /tmp/install.sh
 RUN chmod +x /tmp/install.sh \
 && /tmp/install.sh
-RUN ln -s /root/.nvm/nvm.sh /bin/nvm \
-&&  ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /bin/npm \
-&&  ln -s /root/.nvm/versions/node/v14.19.0/bin/node /bin/node
+ENV PATH "$PATH:/root/.nvm:/root/.nvm/versions/node/v14.19.0/bin"
+RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/node /usr/bin/node
+RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /usr/bin/npm
+RUN chmod +x /root/.nvm/nvm.sh
+RUN ln -s /root/.nvm/nvm.sh /usr/bin/nvm
 
 # temp juiceshop install
 ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz
@@ -135,12 +138,43 @@ RUN tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
 && mv $WWW/juice-shop* $WWW/juiceshop \
 && rm -r /tmp/juiceshop.tgz
 
+# install ruby and rails
+RUN apt-get remove ruby -y
+ENV RUBY_VERSION 2.6.5
+ENV RAILS_VERSION 6.0.0
+RUN npm install --global yarn
+RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+RUN echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+RUN git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+RUN echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
+ENV PATH "$PATH:/root/.rbenv/bin:/root/.rbenv/plugins/ruby-build/bin:/root/.rbenv/libexec"
+# RUN ln -s ~/.rbenv/bin/rbenv /bin/rbenv
+RUN rbenv install ${RUBY_VERSION}
+RUN rbenv global ${RUBY_VERSION}
+ENV PATH "$PATH:/root/.rbenv/versions/2.6.5:/root/.rbenv/shims"
+RUN ln -s /root/.rbenv/versions/2.6.5/ruby /usr/bin/ruby 
+RUN ln -s /root/.rbenv/shims/gem /usr/bin/gem
+RUN gem install bundler
+RUN gem install rails -v ${RAILS_VERSION}
+
+# install railsgoat
+ENV REPO_RAILSGOAT https://github.com/OWASP/railsgoat.git
+RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat
+RUN cd $WWW/railsgoat
+RUN bundle install
+RUN rails db:setup
+# convert to MySQL
+RUN RAILS_ENV=mysql rails db:create
+RUN RAILS_ENV=mysql rails db:migrate
+RUN RAILS_ENV=mysql rails s
+
 # BREAK FOR DEBUG
 ADD https://foobar.xyzw .
 
-# install ruby, rail, and railsgoat
-# use https://www.rosehosting.com/blog/how-to-install-ruby-on-rails-on-debian-11/
-RUN npm install --global yarn
+# install mailcatcher
+RUN gem install mailcatcher
+
 
 
 
@@ -156,18 +190,17 @@ ADD https://foobar.xyzw .
 #       yarn \
 
 
-ENV RELEASE_RUBY http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
-
-# install ruby, rail, and railsgoat (old version)
+# install ruby and rails
+ENV RELEASE_RUBY 2.6.5
+ENV RAILS_VERSION 6.0.0
 ENV RUBYGEMS_VERSION 2.6.10
+ENV BUNDLER_VERSION 1.14.4
 ENV GEM_HOME /usr/local/bundle
 ENV BUNDLE_PATH="$GEM_HOME" \
     BUNDLE_BIN="$GEM_HOME/bin" \
     BUNDLE_SILENCE_ROOT_WARNING=1 \
     BUNDLE_APP_CONFIG="$GEM_HOME"
 ENV PATH $BUNDLE_BIN:$PATH
-ENV BUNDLER_VERSION 1.14.4
-ENV RAILS_VERSION 4
 RUN mkdir -p /usr/local/etc \
 &&    { \
         echo 'install: --no-document'; \
@@ -195,10 +228,15 @@ RUN mkdir -p /usr/src/ruby \
 &&  chmod 777 "$GEM_HOME" "$BUNDLE_BIN" \
 &&  gem install rails --version "$RAILS_VERSION"
 
+ENV RELEASE_RUBY http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
+
+# install ruby, rail, and railsgoat (old version)
+
+
 # BREAK FOR DEBUG
 ADD https://foobar.xyzw .
 
-
+# install railsgoat
 # specific version:
 # git clone --branch <branchname> <remote-repo-url>
 RUN git clone https://github.com/OWASP/railsgoat.git $WWW/railsgoat \
