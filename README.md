@@ -6,8 +6,8 @@ When I started at Xebia in 2015 Docker was hip and new and I wanted to understan
 In 2022 @commjoen challenged me to revamp the project, so here we are :)
 
 ## Note
-This is a very bad idea and probably one of the best examples of how not to use docker. Nevertheless:
-![it runs](assets/itruns.jpg)
+This is a very bad idea and probably one of the best examples of how not to use docker.
+![](assets/itruns.jpg)
 
 
 ## Damn Vulnerable Xebia Training Environment
