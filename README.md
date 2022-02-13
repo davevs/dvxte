@@ -10,7 +10,7 @@ This is a very bad idea and probably one of the best examples of how not to use 
 ![](assets/itruns.jpg)
 
 
-## Damn Vulnerable Xebia Training Environment
+## Damn Vulnerable eXtensive Training Environment
 DVXTE is a docker container with several vulnerable applications.
 By using a docker container it's easy to setup and can easily be reset to it's starting point.
 
@@ -28,6 +28,5 @@ Currently the following training environments are implemented in the Docker cont
 Next to those, the following tools are installed:
   * Mailcatcher   https://mailcatcher.me/
   * Brakeman      http://brakemanscanner.org/
-  * RIPS          https://sourceforge.net/projects/rips-scanner/files/
 
 Once build, the image currently has a size of roughly 1.4GB

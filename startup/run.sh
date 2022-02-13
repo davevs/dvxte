@@ -42,7 +42,7 @@ echo "    | |  | |  \ \ / /      > \`' <       | |      |  _| _  ";
 echo "   _| |_.' /   \ ' /     _/ /'\`\ \_    _| |_    _| |__/ | ";
 echo "  |______.'     \_/     |____||____|  |_____|  |________| ";
 echo "                                                            ";
-echo "  Welcome to the Damn Vulnerable Xebia Training Environment"
+echo "  Welcome to the Damn Vulnerable eXtensive Training Environment"
 echo "  If you see no errors below everything is OK to go"
 echo ""
 echo "  Point your browser to http://localhost and start hacking!"

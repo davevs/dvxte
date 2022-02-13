@@ -158,92 +158,15 @@ RUN ln -s /root/.rbenv/shims/gem /usr/bin/gem
 RUN gem install bundler
 RUN gem install rails -v ${RAILS_VERSION}
 
-# install railsgoat rails/MySQL
+# install railsgoat rails/SQLite
 ENV REPO_RAILSGOAT https://github.com/OWASP/railsgoat.git
 RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat
 RUN cd $WWW/railsgoat \
-&& bundle install
-RUN rails db:setup
-# convert to MySQL
-RUN RAILS_ENV=mysql rails db:create
-RUN RAILS_ENV=mysql rails db:migrate
-RUN RAILS_ENV=mysql rails s
-
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
+&&  bundle install --without development test openshift mysql \
+&&  echo "cd /var/www/html/railsgoat && rails db:setup" >> /initialize.sh
 
 # install mailcatcher
 RUN gem install mailcatcher
-
-
-
-
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
-
-# temp stuff
-# RUN curl -sL https://deb.nodesource.com/setup_lts.x | - \
-# && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-# && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-# && apt-get update \
-# && apt-get install -y --no-install-recommends \
-#       yarn \
-
-
-# install ruby and rails
-ENV RELEASE_RUBY 2.6.5
-ENV RAILS_VERSION 6.0.0
-ENV RUBYGEMS_VERSION 2.6.10
-ENV BUNDLER_VERSION 1.14.4
-ENV GEM_HOME /usr/local/bundle
-ENV BUNDLE_PATH="$GEM_HOME" \
-    BUNDLE_BIN="$GEM_HOME/bin" \
-    BUNDLE_SILENCE_ROOT_WARNING=1 \
-    BUNDLE_APP_CONFIG="$GEM_HOME"
-ENV PATH $BUNDLE_BIN:$PATH
-RUN mkdir -p /usr/local/etc \
-&&    { \
-        echo 'install: --no-document'; \
-        echo 'update: --no-document'; \
-      } >> /usr/local/etc/gemrc
-ADD ${RELEASE_RUBY} /tmp/ruby.tgz
-RUN mkdir -p /usr/src/ruby \
-&&  tar -xzf /tmp/rubytgz -C /usr/src/ruby --strip-components=1 \
-&&  cd /usr/src/ruby \
-&&  { \
-        echo '#define ENABLE_PATH_CHECK 0'; \
-        echo; \
-        cat file.c; \
-    } > file.c.new \
-&&  mv file.c.new file.c \
-&&  autoconf \
-&& ./configure --disable-install-doc --enable-shared \
-&&  make -j"$(nproc)" \
-&&  make install \
-&&  cd / \
-&&  rm -r /usr/src/ruby \
-&&  gem update --system "$RUBYGEMS_VERSION" \
-&&  gem install bundler --version "$BUNDLER_VERSION" \
-&&  mkdir -p "$GEM_HOME" "$BUNDLE_BIN" \
-&&  chmod 777 "$GEM_HOME" "$BUNDLE_BIN" \
-&&  gem install rails --version "$RAILS_VERSION"
-
-ENV RELEASE_RUBY http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
-
-# install ruby, rail, and railsgoat (old version)
-
-
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
-
-# install railsgoat
-# specific version:
-# git clone --branch <branchname> <remote-repo-url>
-RUN git clone https://github.com/OWASP/railsgoat.git $WWW/railsgoat \
-&&  cd $WWW/railsgoat \
-&&  sed -i 's/2.2.2/2.2.3/' $WWW/railsgoat/Gemfile \
-&&  bundle install \
-&&  echo "cd /var/www/html/railsgoat && rake db:setup" >> /initialize.sh
 
 # BREAK FOR DEBUG
 ADD https://foobar.xyzw .
@@ -258,13 +181,6 @@ RUN wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
 &&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
-
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
-
-# install RIPS
-RUN wget "https://sourceforge.net/projects/rips-scanner/files/rips-0.55.zip/download?use_mirror=svwh" -O /tmp/rips.zip \
-&& unzip /tmp/rips.zip -d $WWW
 
 # BREAK FOR DEBUG
 ADD https://foobar.xyzw .
