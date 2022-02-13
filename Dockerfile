@@ -19,6 +19,7 @@ RUN for key in \
 
 # Install build environment and dependencies
 RUN apt-get update \
+&& apt-get purge ruby -y \
 && apt-get install -y --no-install-recommends \
       apache2 \
       autoconf \
@@ -53,6 +54,7 @@ RUN apt-get update \
       php5-gd \
       procps \
       python3 \
+      python3-pip \
       pwgen \
       shared-mime-info \
       software-properties-common \
@@ -75,12 +77,12 @@ RUN touch /initialize.sh
 ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
 ENV WWW /var/www/html
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
 # php config
-RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
-&&  echo 'session.save_path = "/tmp"' >> /etc/php5/apache2/php.ini
+&&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
+&&  echo 'session.save_path = "/tmp"' >> /etc/php5/apache2/php.ini \
 # Remove pre-installed mysql database and add password to startup script
-RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
+&&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
 # install & configure dvwa - php/mysql
 ENV REPO_DVWA https://github.com/digininja/DVWA.git
@@ -109,74 +111,70 @@ RUN git clone ${REPO_DVWSOCK} $WWW/dvwsock \
 
 # install dvws(ervices) - php/mysql
 ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
-RUN git clone ${REPO_DVWSERV_OLD} $WWW/dvws
-RUN echo "sed -i \"s/('localhost', 'root', ''/('localhost', 'admin', '\$PASS'/g\" $WWW/dvws/instructions.php" >> /initialize.sh
+RUN git clone ${REPO_DVWSERV_OLD} $WWW/dvws \
+&& echo "sed -i \"s/('localhost', 'root', ''/('localhost', 'admin', '\$PASS'/g\" $WWW/dvws/instructions.php" >> /initialize.sh
 
 # install webgoat & webwolf - java/instantDB
 ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
 ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
-RUN mkdir $WWW/webgoat
-RUN curl -L ${RELEASE_WEBGOAT} -o $WWW/webgoat/webgoat.jar 
-RUN curl -L ${RELEASE_WEBWOLF} -o $WWW/webgoat/webwolf.jar 
+RUN mkdir $WWW/webgoat \
+&&  curl -L ${RELEASE_WEBGOAT} -o $WWW/webgoat/webgoat.jar  \
+&&  curl -L ${RELEASE_WEBWOLF} -o $WWW/webgoat/webwolf.jar 
 
 # Install nvm, node, and npm
 ENV NODE_VERSION 14
 ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
 ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-linux-x64.tar.gz
-RUN curl ${RELEASE_NVM} -o /tmp/install.sh
-RUN chmod +x /tmp/install.sh \
-&& /tmp/install.sh
+RUN curl ${RELEASE_NVM} -o /tmp/install.sh \
+&&  chmod +x /tmp/install.sh \
+&&  /tmp/install.sh
 ENV PATH "$PATH:/root/.nvm:/root/.nvm/versions/node/v14.19.0/bin"
-RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/node /usr/bin/node
-RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /usr/bin/npm
-RUN chmod +x /root/.nvm/nvm.sh
-RUN ln -s /root/.nvm/nvm.sh /usr/bin/nvm
+RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/node /usr/bin/node \
+&&  ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /usr/bin/npm \
+&&  chmod +x /root/.nvm/nvm.sh \
+&&  ln -s /root/.nvm/nvm.sh /usr/bin/nvm
 
 # temp juiceshop install - node/SQLlite
 ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz
-RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz
-RUN tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
-&& mv $WWW/juice-shop* $WWW/juiceshop \
-&& rm -r /tmp/juiceshop.tgz
+RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz \
+&&  tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
+&&  mv $WWW/juice-shop* $WWW/juiceshop \
+&&  rm -r /tmp/juiceshop.tgz
 
 # install ruby and rails
-RUN apt-get remove ruby -y
 ENV RUBY_VERSION 2.6.5
 ENV RAILS_VERSION 6.0.0
-RUN npm install --global yarn
-RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-RUN echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
-RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-RUN git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
-RUN echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
 ENV PATH "$PATH:/root/.rbenv/bin:/root/.rbenv/plugins/ruby-build/bin:/root/.rbenv/libexec"
-RUN rbenv install ${RUBY_VERSION}
-RUN rbenv global ${RUBY_VERSION}
 ENV PATH "$PATH:/root/.rbenv/versions/2.6.5:/root/.rbenv/shims"
-RUN ln -s /root/.rbenv/versions/2.6.5/ruby /usr/bin/ruby 
-RUN ln -s /root/.rbenv/shims/gem /usr/bin/gem
-RUN gem install bundler
-RUN gem install rails -v ${RAILS_VERSION}
+RUN npm install --global yarn \
+&&  git clone https://github.com/rbenv/rbenv.git ~/.rbenv \
+&&  echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc \
+&&  echo 'eval "$(rbenv init -)"' >> ~/.bashrc \
+&&  git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build \
+&&  echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc \
+&&  rbenv install ${RUBY_VERSION} \
+&&  rbenv global ${RUBY_VERSION} \
+&&  rm /usr/bin/ruby \
+&&  ln -s /root/.rbenv/versions/2.6.5/ruby /usr/bin/ruby \
+&&  rm /usr/bin/gem \
+&&  ln -s /root/.rbenv/shims/gem /usr/bin/gem \
+&&  gem install bundler \
+&&  gem install rails -v ${RAILS_VERSION}
 
 # install railsgoat rails/SQLite
 ENV REPO_RAILSGOAT https://github.com/OWASP/railsgoat.git
-RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat
-RUN cd $WWW/railsgoat \
+RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat \
+&&  cd $WWW/railsgoat \
 &&  bundle install --without development test openshift mysql \
 &&  echo "cd /var/www/html/railsgoat && rails db:setup" >> /initialize.sh
 
 # install mailcatcher
 RUN gem install mailcatcher
 
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
-
 # install django.NV
-RUN wget https://bootstrap.pypa.io/get-pip.py -P /tmp \
-&&  python3 /tmp/get-pip.py \
-&&  git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
+RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
 &&  cd $WWW/djangonv \
-&&  pip install -r requirements.txt \
+&&  pip3 install -r requirements.txt \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
