@@ -82,7 +82,7 @@ RUN sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache
 # Remove pre-installed mysql database and add password to startup script
 RUN echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
-# install & configure dvwa
+# install & configure dvwa - php/mysql
 ENV REPO_DVWA https://github.com/digininja/DVWA.git
 RUN git clone ${REPO_DVWA} $WWW/dvwa \
 &&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
@@ -93,25 +93,26 @@ RUN git clone ${REPO_DVWA} $WWW/dvwa \
 &&  echo "sed -i \"s/'db_user' ]     = 'dvwa';/'db_user' ]     = 'admin';/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
-# install & configure NOWASP / mutillidae II
+# install & configure NOWASP / mutillidae II - php/mysql
 ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
 RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
 && sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
 && sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
-&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_USERNAME', '\$PASS')/g\" $WWW/includes/database-config.inc" >> /initialize.sh\
+&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_PASSWORD', '\$PASS')/g\" $WWW/includes/database-config.inc" >> /initialize.sh\
 && chmod +x $WWW/mutillidae/*.php
 
-# install & configure dvws(ockets)
+# install & configure dvws(ockets) - php/mysql
 ENV REPO_DVWSOCK https://github.com/interference-security/DVWS.git
 RUN git clone ${REPO_DVWSOCK} $WWW/dvwsock \
 &&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
 &&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
 
-# install dvws(ervices)
+# install dvws(ervices) - php/mysql
 ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
 RUN git clone ${REPO_DVWSERV_OLD} $WWW/dvws
+RUN echo "sed -i \"s/('localhost', 'root', ''/('localhost', 'admin', '\$PASS'/g\" $WWW/dvws/instructions.php" >> /initialize.sh
 
-# install webgoat & webwolf
+# install webgoat & webwolf - java/instantDB
 ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
 ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
 RUN mkdir $WWW/webgoat
@@ -131,7 +132,7 @@ RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /usr/bin/npm
 RUN chmod +x /root/.nvm/nvm.sh
 RUN ln -s /root/.nvm/nvm.sh /usr/bin/nvm
 
-# temp juiceshop install
+# temp juiceshop install - node/SQLlite
 ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz
 RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz
 RUN tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
@@ -149,7 +150,6 @@ RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 RUN git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 RUN echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
 ENV PATH "$PATH:/root/.rbenv/bin:/root/.rbenv/plugins/ruby-build/bin:/root/.rbenv/libexec"
-# RUN ln -s ~/.rbenv/bin/rbenv /bin/rbenv
 RUN rbenv install ${RUBY_VERSION}
 RUN rbenv global ${RUBY_VERSION}
 ENV PATH "$PATH:/root/.rbenv/versions/2.6.5:/root/.rbenv/shims"
@@ -158,11 +158,11 @@ RUN ln -s /root/.rbenv/shims/gem /usr/bin/gem
 RUN gem install bundler
 RUN gem install rails -v ${RAILS_VERSION}
 
-# install railsgoat
+# install railsgoat rails/MySQL
 ENV REPO_RAILSGOAT https://github.com/OWASP/railsgoat.git
 RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat
-RUN cd $WWW/railsgoat
-RUN bundle install
+RUN cd $WWW/railsgoat \
+&& bundle install
 RUN rails db:setup
 # convert to MySQL
 RUN RAILS_ENV=mysql rails db:create
