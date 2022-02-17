@@ -3,71 +3,85 @@ MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 
 # --- Set up base environment ---
 ENV DEBIAN_FRONTEND noninteractive
+
 # add keyservers
-RUN for key in \
-    9554F04D7259F04124DE6B476D5A82AC7E37093B \
-    94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
-    0034A06D9D9B0064CE8ADF6BF1747F4AD2306D93 \
-    FD3A5288F042B6850C66B31F09FE44734EB7990E \
-    71DCFD284A79C3B38668286BC97EC7A07EDE3FC1 \
-    DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
-    C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
-    56730D5401028683275BD23C23EFEFE93C4CFFFE \
-  ; do \
-    gpg --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
-  done 
+# RUN apt-get update
+# RUN apt-get install debian-keyring debian-archive-keyring -y
+# RUN for key in \
+#     9554F04D7259F04124DE6B476D5A82AC7E37093B \
+#     94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
+#     0034A06D9D9B0064CE8ADF6BF1747F4AD2306D93 \
+#     FD3A5288F042B6850C66B31F09FE44734EB7990E \
+#     71DCFD284A79C3B38668286BC97EC7A07EDE3FC1 \
+#     DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
+#     C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
+#     56730D5401028683275BD23C23EFEFE93C4CFFFE \
+#   ; do \
+#     gpg --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
+#   done 
+# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
+# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9  
+# RUN apt-key update
 
 # Install build environment and dependencies
-RUN apt-get update \
-&& apt-get purge ruby -y \
-&& apt-get install -y --no-install-recommends \
-      apache2 \
+ENV buildDeps=' \
       autoconf \
       bison \
       build-essential \
       bzip2 \
-      curl \
-      default-jre-headless \
-      g++ \
-      gcc \
+      curl \ 
+      g++-4.9 \
+      gcc-4.9 \
       git \
       libbz2-dev \
+      libcurl4-openssl-dev \
       libffi-dev \
       libgdbm-dev \
-      libglib2.0-dev \
-      libmysqlclient-dev \
+      libglib2.0-dev \  
+      libmysqlclient-dev \          
       libncurses-dev \
       libreadline-dev \
+      libssl-dev \
       libsqlite3-dev \
       libxml2-dev \
       libxslt-dev \
+      libyaml-dev \
+      python3-pip \
+      make \
+	    unzip \
+      wget \
+      xz-utils \
+      zlib1g-dev \
+      '
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+      $buildDeps \
+      apache2 \
       libapache2-mod-php5 \
       libapache2-mod-perl2 \
       libcgi-pm-perl \
-      libcurl4-openssl-dev \
       libgdbm3 \
-      libssl-dev \
-      libyaml-dev \
+      libtool \ 
+      libyaml-0-2 \
       mysql-server \
       nodejs \
       php5-mysql \
       php5-gd \
       procps \
       python3 \
-      python3-pip \
       pwgen \
       shared-mime-info \
       software-properties-common \
       sqlite3 \
-      supervisor \
-      make \
-      ruby \
-	    unzip \
-      wget \
-      xz-utils \
-      zlib1g-dev \
+      supervisor 
+
+# add backports
+RUN echo "deb http://archive.debian.org/debian jessie-backports main" >> /etc/apt/sources.list \
+&&  apt-get update -o Acquire::Check-Valid-Until=false \
+&&  apt-get install -t jessie-backports -y openjdk-8-jre-headless
+
 # get the latest updates
-&& apt-get upgrade
+RUN apt-get upgrade
 
 # --- Install DXTE ----
 # create intialize script for configuration items during boot
@@ -100,7 +114,7 @@ ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
 RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
 && sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
 && sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
-&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_PASSWORD', '\$PASS')/g\" $WWW/includes/database-config.inc" >> /initialize.sh\
+&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_PASSWORD', '\$PASS')/g\" $WWW/mutillidae/includes/database-config.inc" >> /initialize.sh\
 && chmod +x $WWW/mutillidae/*.php
 
 # install & configure dvws(ockets) - php/mysql
@@ -154,9 +168,7 @@ RUN npm install --global yarn \
 &&  echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc \
 &&  rbenv install ${RUBY_VERSION} \
 &&  rbenv global ${RUBY_VERSION} \
-&&  rm /usr/bin/ruby \
 &&  ln -s /root/.rbenv/versions/2.6.5/ruby /usr/bin/ruby \
-&&  rm /usr/bin/gem \
 &&  ln -s /root/.rbenv/shims/gem /usr/bin/gem \
 &&  gem install bundler \
 &&  gem install rails -v ${RAILS_VERSION}
@@ -180,12 +192,10 @@ RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
 &&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
 
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
-
 # install webmaven buggy bank
-RUN wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
-&& unzip /tmp/webmaven101.zip -d /tmp/webmaven \
+ENV RELEASE_WEBMAVEN https://www.mavensecurity.com/media/webmaven101.zip
+RUN curl -kL ${RELEASE_WEBMAVEN} -o /tmp/webmaven.zip \
+&& unzip /tmp/webmaven.zip -d /tmp/webmaven \
 && mv /tmp/webmaven/src/cgi-bin/* /usr/lib/cgi-bin/ \
 && mv /tmp/webmaven/src/wm /usr/lib/ \
 && mv /tmp/webmaven/src/webmaven_html/ $WWW/webmaven/ \
@@ -197,14 +207,12 @@ RUN wget https://www.mavensecurity.com/media/webmaven101.zip -P /tmp \
 && chmod 777 /usr/lib/wm/ \
 && a2enmod cgi
 
-# BREAK FOR DEBUG
-ADD https://foobar.xyzw .
-
 # cleanup
-RUN  apt-get clean -y \
-&&  apt-get autoclean -y \
-&&  apt-get autoremove -y \
-&&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
+# RUN  apt-get purge -y --auto-remove $buildDeps \
+# &&  apt-get clean -y \
+# &&  apt-get autoclean -y \
+# &&  apt-get autoremove -y \
+# &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
 
 # Copy startup files and config files
 COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
