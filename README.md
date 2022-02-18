@@ -1,17 +1,19 @@
 # Current status: broken & refacturing
-* Docker builds
-* Some startup scripts are broken:
-**DVWA - starts
-**DVWServices  - starts
-**DVWSockets - starts
-**NoWASP - starts
-**Webgoat / Webwolf - webgoat starts, webwolf fails
-**Juiceshop - fails
-**Railsgoat - starts
-**django.NV - starts
-**Buggy bank - starts
-**Mailcatcher - starts
-* Smoke testing web applications in progress
+Docker builds</br>
+
+Some startup scripts are broken:
+* DVWA - starts
+* DVWServices  - starts
+* DVWSockets - starts
+* NoWASP - starts
+* Webgoat / Webwolf - webgoat starts, webwolf fails
+* Juiceshop - fails
+* Railsgoat - starts
+* django.NV - starts
+* Buggy bank - starts
+* Mailcatcher - starts</br>
+
+Smoke testing web applications in progress
 
 ## Background
 When I started at Xebia in 2015, Docker was hip and new and I wanted to understand it better. As I was getting tired of continuously rebuilding vulnerable testing environments I thought it was a nice idea to see if I could put them all in 1 docker container, so that a simple restart would refresh everything. I also wanted to see if I could break docker by putting so many things in 1 container. Turns out docker is really flexible and has no problem with running multiple webservers and databases at the same time. In 2017 I lost interest in the project as I was no longer using it and I didn't feel like maintaining all the dependencies anymore.
