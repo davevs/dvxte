@@ -1,6 +1,16 @@
 # Current status: broken & refacturing
 * Docker builds
-* Some startup scripts are broken
+* Some startup scripts are broken:
+**DVWA - starts
+**DVWServices  - starts
+**DVWSockets - starts
+**NoWASP - starts
+**Webgoat / Webwolf - webgoat starts, webwolf fails
+**Juiceshop - fails
+**Railsgoat - starts
+**django.NV - starts
+**Buggy bank - starts
+**Mailcatcher - starts
 * Smoke testing web applications in progress
 
 ## Background
