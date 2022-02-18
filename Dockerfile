@@ -75,10 +75,15 @@ RUN apt-get update \
       sqlite3 \
       supervisor 
 
-# add backports
-RUN echo "deb http://archive.debian.org/debian jessie-backports main" >> /etc/apt/sources.list \
-&&  apt-get update -o Acquire::Check-Valid-Until=false \
-&&  apt-get install -t jessie-backports -y openjdk-8-jre-headless
+# install java
+ENV RELEASE_JAVA https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz
+RUN curl -L ${RELEASE_JAVA} -o /tmp/java.tar.gz
+RUN tar -xvf /tmp/java.tar.gz -C /usr/bin
+ENV PATH "$PATH:/usr/bin/jdk-17.0.2/bin"
+ENV JAVA_HOME /usr/bin/jdk-17.0.2
+RUN echo 'export PATH="/usr/bin/jdk-17.0.2/bin:$PATH"' >> ~/.bashrc \
+&&  echo 'export JAVA_HOME=/usr/bin/jdk-17.0.2' >> ~/.bashrc \
+&&  rm /tmp/java.tar.gz
 
 # get the latest updates
 RUN apt-get upgrade
@@ -136,20 +141,19 @@ RUN mkdir $WWW/webgoat \
 &&  curl -L ${RELEASE_WEBWOLF} -o $WWW/webgoat/webwolf.jar 
 
 # Install nvm, node, and npm
-ENV NODE_VERSION 14
+ENV NODE_VERSION 12
 ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
-ENV RELEASE_NODEJS https://nodejs.org/download/release/v12.22.10/node-v12.22.10-linux-x64.tar.gz
 RUN curl ${RELEASE_NVM} -o /tmp/install.sh \
 &&  chmod +x /tmp/install.sh \
 &&  /tmp/install.sh
-ENV PATH "$PATH:/root/.nvm:/root/.nvm/versions/node/v14.19.0/bin"
-RUN ln -s /root/.nvm/versions/node/v14.19.0/bin/node /usr/bin/node \
-&&  ln -s /root/.nvm/versions/node/v14.19.0/bin/npm /usr/bin/npm \
+ENV PATH "$PATH:/root/.nvm:/root/.nvm/versions/node/v12.22.10/bin"
+RUN ln -s /root/.nvm/versions/node/v12.22.10/bin/node /usr/bin/node \
+&&  ln -s /root/.nvm/versions/node/v12.22.10/bin/npm /usr/bin/npm \
 &&  chmod +x /root/.nvm/nvm.sh \
 &&  ln -s /root/.nvm/nvm.sh /usr/bin/nvm
 
 # temp juiceshop install - node/SQLlite
-ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.1/juice-shop-13.2.1_node14_linux_x64.tgz
+ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.2/juice-shop-13.2.2_node12_linux_x64.tgz
 RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz \
 &&  tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
 &&  mv $WWW/juice-shop* $WWW/juiceshop \
