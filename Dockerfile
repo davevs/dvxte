@@ -177,7 +177,9 @@ RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat \
 # install mailcatcher
 RUN gem install mailcatcher
 
-
+ENV RELEASE_WRONGSECRETS https://github.com/commjoen/wrongsecrets/releases/download/1.3.4/wrongsecrets-1.3.4-SNAPSHOT.jar
+RUN mkdir $WWW/wrongsecrets \
+&&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
 
 
 # --- to fix ---
@@ -237,20 +239,21 @@ RUN chmod +x /*.sh
 COPY www $WWW/
 
 # port usage
-#   80 - DVWA, Mutillidae, DVWServices, , BuggyBank
+#   80 - DVWA, Mutillidae, BuggyBank
 # 1080 - Mailcatcher
 # 3000 - RailsGoat
 # 3306 - mariaDB/MySQL
 # 4000 - Juiceshop
-# 5000 - dvws-node
+# 5000 - 
 # 8000 - django.NV
-# 8080 - DVWServices
+# 8080 - 
 # 8200 - WebGoat
 # 8300 - WebWolf
+# 8400 - WrongSecrets
 # 9001 - HSQLDB 
-# 9090 - DVWSockets xmlrpc
+# 9090 - 
 
 
-EXPOSE 80 1080 3000 4000 5000 8000 8080 8200 8300 9090
+EXPOSE 80 1080 3000 4000 5000 8000 8080 8200 8300 8400 9090
 
 CMD ["/run.sh"]
