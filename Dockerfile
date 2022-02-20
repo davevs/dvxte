@@ -177,12 +177,21 @@ RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat \
 # install mailcatcher
 RUN gem install mailcatcher
 
-ENV RELEASE_WRONGSECRETS https://github.com/commjoen/wrongsecrets/releases/download/1.3.4/wrongsecrets-1.3.4-SNAPSHOT.jar
-RUN mkdir $WWW/wrongsecrets \
-&&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
+# install django.NV
+RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
+&&  cd $WWW/djangonv \
+&&  pip3 install -r requirements.txt \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
+&&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
+&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
 
 
 # --- to fix ---
+# # WrongSecrets
+# ENV RELEASE_WRONGSECRETS https://github.com/commjoen/wrongsecrets/releases/download/1.3.4/wrongsecrets-1.3.4-SNAPSHOT.jar
+# RUN mkdir $WWW/wrongsecrets \
+# &&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
 
 # # install dvws(ockets) - ratchet/reactphp
 # install composer
@@ -217,14 +226,7 @@ RUN mkdir $WWW/wrongsecrets \
 # # Remove pre-installed mysql database and add password to startup script
 # &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
-# install django.NV
-RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
-&&  cd $WWW/djangonv \
-&&  pip3 install -r requirements.txt \
-&&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
-&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
-&&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
-&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
+
 
 # --- Install DXTE startup files and landing page --- 
 # Copy startup files and config files
