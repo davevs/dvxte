@@ -14,6 +14,8 @@ while [[ RET -ne 0 ]]; do
     RET=$?
 done
 
+echo "=> Deleting anonymous user"
+mysql -uroot -e "DROP user ''@'localhost'"
 PASS=${MYSQL_PASS:-$(pwgen -s 12 1)}
 echo "=> Creating MySQL admin user with random password"
 mysql -uroot -e "CREATE USER 'admin'@'%' IDENTIFIED BY '$PASS'"

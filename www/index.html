@@ -57,13 +57,20 @@
     text-align: center;
   }
 
-  div.section_header_purple {
-    background-color: #6A205F;
+  div.section_header_category {
+    background-color: #249c42;
+	font-size: medium;
   }
   
+  div.section_header_index {
+    background-color: #4c7e4a;
+	font-size: small;
+  }
+
   .floating_element {
     position: relative;
-    float: left;
+    float: none;
+	vertical-align: middle;
   }
 
 .divTable{
@@ -86,93 +93,237 @@
 .divTableBody {
 	display: table-row-group;
 }
-      
+
+details > summary {
+  padding: 2px;
+  background-color: #a4a5a4;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
   <div class="main_page">
     <div class="page_header floating_element">
-      <img src="images/xebia_training.png" alt="Xebia Logo" class="floating_element"/>
       <span class="floating_element">
-          Xebia Training Environment
+          Damn Vulnerable eXtensive Training Environment
       </span>
     </div>
     <div class="divTable">
       <div class="divTableBody">
-        <div class="divTableRow section_header section_header_purple">
-	        <div class="divTableCell">Application</div>
-	        <div class="divTableCell">Description</div>
-	        <div class="divTableCell">Source</div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost:8200/WebGoat"><img src="images/webgoat.png" class="floating_element"/></a></div>
-	        <div class="divTableCell">WebGoat is a deliberately insecure web application maintained by OWASP designed to teach web application security lessons. In each lesson, users must demonstrate their understanding of a security issue by exploiting a real vulnerability in the WebGoat applications. The application is a realistic teaching environment, providing users with hints and code to further explain the lesson.</div>
-		      <div class="divTableCell"><a href="https://owasp.org/www-project-webgoat/">OWASP</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost:9090/WebWolf"><img src="images/webwolf.png" class="floating_element"/></a></div>	        
-			<div class="divTableCell">WebWolf is a separate web application which simulates an attackers machine. It makes it possible for us to make a clear distinction between what takes place on the attacked website and the actions you need to do as an “attacker”.</div>
-		      <div class="divTableCell"><a href="https://owasp.org/www-project-webgoat/">OWASP</a></div>
-	      </div>		  
-		  <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/wrongsecrets"><img src="images/wrongsecrets.png" class="floating_element"/></a></div>
-	        <div class="divTableCell">OWASP WrongSecrets is the first Secrets Management-focused vulnerable/p0wnable app! It can be used in security trainings, awareness demos, as a test environment for secret detection tools, and bad practice detection tooling.</div>
-		      <div class="divTableCell"><a href="https://owasp.org/www-project-wrongsecrets/">OWASP</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost:4000"><img src="images/JuiceShop_Logo.png" alt="" class="floating_element"/></a></div>
-	        <div class="divTableCell">JuiceShop is a vulnerable web application build in node.js and angular. It uses a REST API and JSON. </div>
-		      <div class="divTableCell"><a href="https://www.owasp.org/index.php/OWASP_Juice_Shop_Project">OWASP</a></div>
-	      </div>
-		  <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/dvwa"><img src="images/dvwa.jpg" class="floating_element"/></a></div>
-	        <div class="divTableCell">Damn Vulnerable Web App (DVWA) is a PHP/MySQL web application that is damn vulnerable. Its main goals are to be an aid for security professionals to test their skills and tools in a legal environment, help web developers better understand the processes of securing web applications and aid teachers/students to teach/learn web application security in a class room environment.</div>
-		      <div class="divTableCell"><a href="https://dvwa.co.uk/">dvwa.co.uk</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/mutillidae"><img src="images/mutillidae.png" class="floating_element"/></a></div>
-	        <div class="divTableCell">NOWASP (Mutillidae) is a free, open source, deliberately vulnerable web-application providing a target for web-security enthusiest. With dozens of vulns and hints to help the user; this is an easy-to-use web hacking environment designed for labs, security enthusiast, classrooms, CTF, and vulnerability assessment tool targets. Mutillidae has been used in graduate security courses, corporate web sec training courses, and as an "assess the assessor" target for vulnerability assessment software.</div>
-		      <div class="divTableCell"><a href="https://github.com/webpwnized/mutillidae">Github</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/dvws"><img src="images/Damn-Vulnerable-Web-Services.png" class="floating_element"/></a></div>
-	        <div class="divTableCell">Damn Vulnerable Web Service (DVWS) are PHP/MySQL web services that are damn vulnerable. This application was created mainly due to the lack of practical environments available for hacking web services.</div>
-		      <div class="divTableCell"><a href="https://github.com/snoopysecurity/dvws">snoopysecurity</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/dvwsock"><img src="images/Damn-Vulnerable-Web-Sockets-DVWS.png" alt="" class="floating_element"/></a></div>
-	        <div class="divTableCell">Damn Vulnerable Web Sockets (DVWS) is a vulnerable web application which works on web sockets for client-server communication. The flow of the application is similar to DVWA. You will find more vulnerabilities than the ones listed in the application.</div>
-		      <div class="divTableCell"><a href="https://github.com/interference-security/DVWS">Interference Security</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost:3000"><img src="images/railsgoat.png" alt="" class="floating_element"/></a></div>
-	        <div class="divTableCell">This is a Rails application which is vulnerable to the OWASP Top 10. It is intended to show how each of these categories of vulnerabilities can manifest themselves in a Rails-specific way as well as provide the subsequent mitigations for each. </div>
-		      <div class="divTableCell"><a href="http://railsgoat.cktricky.com/index.html">cktricky</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost:8000"><img src="images/djanognv.png" alt="" class="floating_element"/></a></div>
-	        <div class="divTableCell">django.nV is a purposefully vulnerable Django application provided by nVisium.</div>
-		      <div class="divTableCell"><a href="https://github.com/nVisium/django.nV">nVisium</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/webmaven"><img src="images/buggybank.jpg" alt="" class="floating_element"/></a></div>
-	        <div class="divTableCell">WebMaven (better known as Buggy Bank) was an interactive learning environment for web application security using Perl. It emulated various security flaws for the user to find. This enabled users to safely & legally practice web application vulnerability assessment techniques. In addition, users could benchmark their security audit tools to ensure they perform as advertised.</div>
-		      <div class="divTableCell"><a href="https://www.mavensecurity.com/about/webmaven/">Maven Security</a></div>
-	      </div>
-	      <div class="divTableRow section_header section_header_purple">
+		<div class="divTableRow section_header section_header_category">
 	        <div class="divTableCell"></div>
+			<div class="divTableCell"></div>
+	        <div class="divTableCell">Vulnerable Applications</div>
+		      <div class="divTableCell"></div>
+			  <div class="divTableCell"></div>
+	      </div>
+		<div class="divTableRow section_header section_header_index">
+	        <div class="divTableCell">Application</div>
+			<div class="divTableCell">Link</div>
+	        <div class="divTableCell">Description</div>
+	        <div class="divTableCell">Stack</div>			
+	        <div class="divTableCell">Credits</div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/webgoat.png" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost:8200/WebGoat">Start WebGoat</a></div>
+	        <div class="divTableCell">Vulnerable Web Application
+			<details>
+			  	<summary>
+				More info
+				</summary>
+				WebGoat is a deliberately insecure web application maintained by OWASP designed to teach web application security lessons. In each lesson, users must demonstrate their understanding of a security issue by exploiting a real vulnerability in the WebGoat applications. The application is a realistic teaching environment, providing users with hints and code to further explain the lesson.</br>Note: WebGoat takes a couple of seconds to start on first run.
+			</details>
+			</div>
+			<div class="divTableCell">Java / HSQLDB</div>
+			<div class="divTableCell"><a href="https://owasp.org/www-project-webgoat/">OWASP</a></div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/webwolf.png" class="floating_element"/></div>	        
+			<div class="divTableCell"><a href="http://localhost:8300/WebWolf">Start WebWolf</a></div>
+			<div class="divTableCell">Attack Simulator for WebGoat
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  WebWolf is a separate web application which simulates an attackers machine. It makes it possible for us to make a clear distinction between what takes place on the attacked website and the actions you need to do as an “attacker”.</br>Note: WebGoat takes a couple of seconds to start on first run.
+			  </details>
+			</div>
+		    <div class="divTableCell">Java / HSQLDB</div>
+			<div class="divTableCell"><a href="https://owasp.org/www-project-webgoat/">OWASP</a></div>
+	      </div>		  
+		  
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/JuiceShop_Logo.png" alt="" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost:4000">Start JuiceShop</a></div>
+			<div class="divTableCell">Vulnerable Web Application
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  JuiceShop is a vulnerable web application build in node.js and angular. It uses a REST API and JSON. 
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">nodejs / SQLite3</div>
+			<div class="divTableCell"><a href="https://www.owasp.org/index.php/OWASP_Juice_Shop_Project">OWASP</a></div>
+	      </div>
+		  <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/dvwa.jpg" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost/dvwa">Start DVWA</a></div>
+			<div class="divTableCell">Vulnerable Web Application
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  Damn Vulnerable Web App (DVWA) is a PHP/MySQL web application that is damn vulnerable. Its main goals are to be an aid for security professionals to test their skills and tools in a legal environment, help web developers better understand the processes of securing web applications and aid teachers/students to teach/learn web application security in a class room environment.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">php / MySQL</div>
+			<div class="divTableCell"><a href="https://dvwa.co.uk/">dvwa.co.uk</a></div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/mutillidae.png" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost/mutillidae">Start Mutillidae II</a></div>
+	        <div class="divTableCell">Vulnerable Web Application
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  NOWASP (Mutillidae) is a free, open source, deliberately vulnerable web-application providing a target for web-security enthusiest. With dozens of vulns and hints to help the user; this is an easy-to-use web hacking environment designed for labs, security enthusiast, classrooms, CTF, and vulnerability assessment tool targets. Mutillidae has been used in graduate security courses, corporate web sec training courses, and as an "assess the assessor" target for vulnerability assessment software.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">php / MySQL</div>
+			<div class="divTableCell"><a href="https://github.com/webpwnized/mutillidae">Github</a></div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/railsgoat.png" alt="" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost:3000">Start RailsGoat</a></div>
+	        <div class="divTableCell">Vulnerable Web Application
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  This is a Rails application which is vulnerable to the OWASP Top 10. It is intended to show how each of these categories of vulnerabilities can manifest themselves in a Rails-specific way as well as provide the subsequent mitigations for each. 
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">Rails / SQLite</div>
+			<div class="divTableCell"><a href="http://railsgoat.cktricky.com/index.html">cktricky</a></div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/djanognv.png" alt="" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost:8000">Start django.NV</a></div>
+	        <div class="divTableCell">Vulnerable Web Application
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  django.nV is a purposefully vulnerable Django application provided by nVisium.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">django / SQLite</div>
+			<div class="divTableCell"><a href="https://github.com/nVisium/django.nV">nVisium</a></div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/buggybank.jpg" alt="" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost/webmaven">Start Buggybank</a></div>
+	        <div class="divTableCell">Vulnerable Web Applicatiopn
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  WebMaven (better known as Buggy Bank) was an interactive learning environment for web application security using Perl. It emulated various security flaws for the user to find. This enabled users to safely & legally practice web application vulnerability assessment techniques. In addition, users could benchmark their security audit tools to ensure they perform as advertised.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">cgi-perl</div>
+			<div class="divTableCell"><a href="https://www.mavensecurity.com/about/webmaven/">Maven Security</a></div>
+	      </div>
+		  <!-- <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/Damn-Vulnerable-Web-Services.png" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost/dvws">Start DVWServices</a></div>
+	        <div class="divTableCell">Vulnerable Web Services
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  Damn Vulnerable Web Service (DVWS) are PHP/MySQL web services that are damn vulnerable. This application was created mainly due to the lack of practical environments available for hacking web services.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell"></div>
+			<div class="divTableCell"><a href="https://github.com/snoopysecurity/dvws-node">snoopysecurity</a></div>
+	      </div>
+	      <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/Damn-Vulnerable-Web-Sockets-DVWS.png" alt="" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost:5000/dvwsock">Start DVWSockets</a></div>
+	        <div class="divTableCell">Vulnerable Web Sockets
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  Damn Vulnerable Web Sockets (DVWS) is a vulnerable web application which works on web sockets for client-server communication. The flow of the application is similar to DVWA. You will find more vulnerabilities than the ones listed in the application.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell">ratchet / reactphp / MySQL</div>
+			<div class="divTableCell"><a href="https://github.com/interference-security/DVWS">Interference Security</a></div>
+	      </div> -->
+	      <div class="divTableRow section_header section_header_category">
+	        <div class="divTableCell"></div>
+			<div class="divTableCell"></div>
+	        <div class="divTableCell">Challenges</div>
+		      <div class="divTableCell"></div>
+			  <div class="divTableCell"></div>
+	      </div>
+		  <div class="divTableRow section_header section_header_index">
+	        <div class="divTableCell">Application</div>
+			<div class="divTableCell">Link</div>
+	        <div class="divTableCell">Description</div>
+	        <div class="divTableCell">Stack</div>			
+	        <div class="divTableCell">Credits</div>
+	      </div>
+		  <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/wrongsecrets.png" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost/wrongsecrets">Start WrongSecrets</a></div>
+			<div class="divTableCell">Secrets challenges
+				<details>
+					<summary>
+				  More info
+				  </summary>
+				  OWASP WrongSecrets is the first Secrets Management-focused vulnerable/p0wnable app! It can be used in security trainings, awareness demos, as a test environment for secret detection tools, and bad practice detection tooling.
+				 </details>				
+	
+			</div>
+		    <div class="divTableCell"></div>
+			<div class="divTableCell"><a href="https://owasp.org/www-project-wrongsecrets/">OWASP</a></div>
+	      </div>
+		  <div class="divTableRow section_header section_header_category">
+	        <div class="divTableCell"></div>
+			<div class="divTableCell"></div>
 	        <div class="divTableCell">Tools</div>
 		      <div class="divTableCell"></div>
+			  <div class="divTableCell"></div>
 	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost:1080"><img src="images/mailcatcher.png" alt="" class="floating_element"/></a></div>
+		  <div class="divTableRow section_header section_header_index">
+	        <div class="divTableCell">Application</div>
+			<div class="divTableCell">Link</div>
+	        <div class="divTableCell">Description</div>
+	        <div class="divTableCell">Stack</div>			
+	        <div class="divTableCell">Credits</div>
+	      </div>
+		  <div class="divTableRow">
+	        <div class="divTableCell"><img src="images/mailcatcher.png" alt="" class="floating_element"/></div>
+			<div class="divTableCell"><a href="http://localhost:1080">Mailcatcher GUI</a></div>
 	        <div class="divTableCell">Mailcatcher allows you to view emails send by an application in the browser</div>
-		      <div class="divTableCell"><a href="https://mailcatcher.me/">mailcatcher</a></div>
-	      </div>
-	      <div class="divTableRow">
-	        <div class="divTableCell"><a href="http://localhost/rips-0.55"><img src="images/rips.jpg" alt="" class="floating_element"/></a></div>
-	        <div class="divTableCell">RIPS is a static code analysis tool to automatically detect vulnerabilities in PHP applications.</div>
-		      <div class="divTableCell"><a href="http://rips-scanner.sourceforge.net/">RIPS</a></div>
+		    <div class="divTableCell"></div>
+			<div class="divTableCell"><a href="https://mailcatcher.me/">mailcatcher</a></div>
 	      </div>
 	    </div>
     </div>		

@@ -1,27 +1,8 @@
-FROM debian:jessie
+FROM debian:stretch-slim
 MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 
 # --- Set up base environment ---
-ENV DEBIAN_FRONTEND noninteractive
-
-# add keyservers
-# RUN apt-get update
-# RUN apt-get install debian-keyring debian-archive-keyring -y
-# RUN for key in \
-#     9554F04D7259F04124DE6B476D5A82AC7E37093B \
-#     94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
-#     0034A06D9D9B0064CE8ADF6BF1747F4AD2306D93 \
-#     FD3A5288F042B6850C66B31F09FE44734EB7990E \
-#     71DCFD284A79C3B38668286BC97EC7A07EDE3FC1 \
-#     DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
-#     C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
-#     56730D5401028683275BD23C23EFEFE93C4CFFFE \
-#   ; do \
-#     gpg --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
-#   done 
-# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
-# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9  
-# RUN apt-key update
+ARG DEBIAN_FRONTEND noninteractive
 
 # Install build environment and dependencies
 ENV buildDeps=' \
@@ -30,15 +11,15 @@ ENV buildDeps=' \
       build-essential \
       bzip2 \
       curl \ 
-      g++-4.9 \
-      gcc-4.9 \
+      default-libmysqlclient-dev \          
+      g++ \
+      gcc \
       git \
       libbz2-dev \
       libcurl4-openssl-dev \
       libffi-dev \
       libgdbm-dev \
       libglib2.0-dev \  
-      libmysqlclient-dev \          
       libncurses-dev \
       libreadline-dev \
       libssl-dev \
@@ -48,7 +29,7 @@ ENV buildDeps=' \
       libyaml-dev \
       python3-pip \
       make \
-	    unzip \
+	unzip \
       wget \
       xz-utils \
       zlib1g-dev \
@@ -57,16 +38,22 @@ RUN apt-get update \
 && apt-get install -y --no-install-recommends \
       $buildDeps \
       apache2 \
-      libapache2-mod-php5 \
+      dnsutils \
+      iputils-ping \
+      libapache2-mod-php \
       libapache2-mod-perl2 \
       libcgi-pm-perl \
       libgdbm3 \
-      libtool \ 
+      libtool \
+      libxml2 \ 
       libyaml-0-2 \
       mysql-server \
       nodejs \
-      php5-mysql \
-      php5-gd \
+      php-curl \
+      php-mbstring \
+      php-mysql \
+      php-gd \
+      php-xml \
       procps \
       python3 \
       pwgen \
@@ -74,6 +61,22 @@ RUN apt-get update \
       software-properties-common \
       sqlite3 \
       supervisor 
+
+# get the latest updates
+RUN apt-get upgrade
+
+# --- Install DXTE boilerplate ---
+# create intialize script for configuration items during boot
+ENV WWW /var/www/html
+RUN touch /initialize.sh 
+
+# configure apache, php, mysql
+ENV PHP_UPLOAD_MAX_FILESIZE 10M
+ENV PHP_POST_MAX_SIZE 10M
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+# php config
+&&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php/7.0/apache2/php.ini \
+&&  echo 'session.save_path = "/tmp"' >> /etc/php/7.0/apache2/php.ini
 
 # install java
 ENV RELEASE_JAVA https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz
@@ -84,61 +87,6 @@ ENV JAVA_HOME /usr/bin/jdk-17.0.2
 RUN echo 'export PATH="/usr/bin/jdk-17.0.2/bin:$PATH"' >> ~/.bashrc \
 &&  echo 'export JAVA_HOME=/usr/bin/jdk-17.0.2' >> ~/.bashrc \
 &&  rm /tmp/java.tar.gz
-
-# get the latest updates
-RUN apt-get upgrade
-
-# --- Install DXTE ----
-# create intialize script for configuration items during boot
-RUN touch /initialize.sh 
-
-# configure apache, php, mysql
-ENV PHP_UPLOAD_MAX_FILESIZE 10M
-ENV PHP_POST_MAX_SIZE 10M
-ENV WWW /var/www/html
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-# php config
-&&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php5/apache2/php.ini \
-&&  echo 'session.save_path = "/tmp"' >> /etc/php5/apache2/php.ini \
-# Remove pre-installed mysql database and add password to startup script
-&&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
-
-# install & configure dvwa - php/mysql
-ENV REPO_DVWA https://github.com/digininja/DVWA.git
-RUN git clone ${REPO_DVWA} $WWW/dvwa \
-&&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
-&&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
-&&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
-&&  sed -i "s/private_key' ] = ''/private_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
-&&  sed -i "s/'default_security_level' ] = 'impossible'/'default_security_level' ] = 'low'/g" $WWW/dvwa/config/config.inc.php \
-&&  echo "sed -i \"s/'db_user' ]     = 'dvwa';/'db_user' ]     = 'admin';/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
-&&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
-
-# install & configure NOWASP / mutillidae II - php/mysql
-ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
-RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
-&& sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
-&& sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
-&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_PASSWORD', '\$PASS')/g\" $WWW/mutillidae/includes/database-config.inc" >> /initialize.sh\
-&& chmod +x $WWW/mutillidae/*.php
-
-# install & configure dvws(ockets) - php/mysql
-ENV REPO_DVWSOCK https://github.com/interference-security/DVWS.git
-RUN git clone ${REPO_DVWSOCK} $WWW/dvwsock \
-&&  sed -i 's/root/admin/g' $WWW/dvwsock/includes/connect-db.php \ 
-&&  echo "sed -i \"s/toor/\$PASS/g\" $WWW/dvwsock/includes/connect-db.php" >> /initialize.sh
-
-# install dvws(ervices) - php/mysql
-ENV REPO_DVWSERV_OLD https://github.com/snoopysecurity/dvws.git
-RUN git clone ${REPO_DVWSERV_OLD} $WWW/dvws \
-&& echo "sed -i \"s/('localhost', 'root', ''/('localhost', 'admin', '\$PASS'/g\" $WWW/dvws/instructions.php" >> /initialize.sh
-
-# install webgoat & webwolf - java/instantDB
-ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
-ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
-RUN mkdir $WWW/webgoat \
-&&  curl -L ${RELEASE_WEBGOAT} -o $WWW/webgoat/webgoat.jar  \
-&&  curl -L ${RELEASE_WEBWOLF} -o $WWW/webgoat/webwolf.jar 
 
 # Install nvm, node, and npm
 ENV NODE_VERSION 12
@@ -151,13 +99,6 @@ RUN ln -s /root/.nvm/versions/node/v12.22.10/bin/node /usr/bin/node \
 &&  ln -s /root/.nvm/versions/node/v12.22.10/bin/npm /usr/bin/npm \
 &&  chmod +x /root/.nvm/nvm.sh \
 &&  ln -s /root/.nvm/nvm.sh /usr/bin/nvm
-
-# temp juiceshop install - node/SQLlite
-ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.2/juice-shop-13.2.2_node12_linux_x64.tgz
-RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz \
-&&  tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
-&&  mv $WWW/juice-shop* $WWW/juiceshop \
-&&  rm -r /tmp/juiceshop.tgz
 
 # install ruby and rails
 ENV RUBY_VERSION 2.6.5
@@ -177,24 +118,25 @@ RUN npm install --global yarn \
 &&  gem install bundler \
 &&  gem install rails -v ${RAILS_VERSION}
 
-# install railsgoat rails/SQLite
-ENV REPO_RAILSGOAT https://github.com/OWASP/railsgoat.git
-RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat \
-&&  cd $WWW/railsgoat \
-&&  bundle install --without development test openshift mysql \
-&&  echo "cd /var/www/html/railsgoat && rails db:setup" >> /initialize.sh
+# --- Install DXTE applications ---
+# install & configure dvwa - php/mysql
+ENV REPO_DVWA https://github.com/digininja/DVWA.git
+RUN git clone ${REPO_DVWA} $WWW/dvwa \
+&&  cp $WWW/dvwa/config/config.inc.php.dist $WWW/dvwa/config/config.inc.php \
+&&  chmod -R 777 $WWW/dvwa/hackable/uploads $WWW/dvwa/external/phpids/0.6/lib/IDS/tmp/phpids_log.txt \
+&&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
+&&  sed -i "s/private_key' ] = ''/private_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
+&&  sed -i "s/'default_security_level' ] = 'impossible'/'default_security_level' ] = 'low'/g" $WWW/dvwa/config/config.inc.php \
+&&  echo "sed -i \"s/'db_user' ]     = 'dvwa';/'db_user' ]     = 'admin';/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
+&&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
-# install mailcatcher
-RUN gem install mailcatcher
-
-# install django.NV
-RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
-&&  cd $WWW/djangonv \
-&&  pip3 install -r requirements.txt \
-&&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
-&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
-&&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
-&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
+# install & configure NOWASP / mutillidae II - php/mysql
+ENV REPO_NOWASP https://github.com/webpwnized/mutillidae.git
+RUN git clone ${REPO_NOWASP} $WWW/mutillidae \
+&& sed -i 's/MySQLDatabaseUsername = "root"/MySQLDatabaseUsername = "admin"/g' $WWW/mutillidae/classes/MySQLHandler.php \
+&& sed -i "s/('DB_USERNAME', 'root')/('DB_USERNAME', 'admin')/g" $WWW/mutillidae/includes/database-config.inc \
+&& echo "sed -i \"s/('DB_PASSWORD', 'mutillidae')/('DB_PASSWORD', '\$PASS')/g\" $WWW/mutillidae/includes/database-config.inc" >> /initialize.sh\
+&& chmod +x $WWW/mutillidae/*.php
 
 # install webmaven buggy bank
 ENV RELEASE_WEBMAVEN https://www.mavensecurity.com/media/webmaven101.zip
@@ -211,13 +153,78 @@ RUN curl -kL ${RELEASE_WEBMAVEN} -o /tmp/webmaven.zip \
 && chmod 777 /usr/lib/wm/ \
 && a2enmod cgi
 
-# cleanup
-# RUN  apt-get purge -y --auto-remove $buildDeps \
-# &&  apt-get clean -y \
-# &&  apt-get autoclean -y \
-# &&  apt-get autoremove -y \
-# &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
+# install webgoat & webwolf - java/instantDB
+ENV RELEASE_WEBGOAT https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webgoat-server-8.2.2.jar
+ENV RELEASE_WEBWOLF https://github.com/WebGoat/WebGoat/releases/download/v8.2.2/webwolf-8.2.2.jar
+RUN mkdir $WWW/webgoat \
+&&  curl -L ${RELEASE_WEBGOAT} -o $WWW/webgoat/webgoat.jar  \
+&&  curl -L ${RELEASE_WEBWOLF} -o $WWW/webgoat/webwolf.jar 
+ 
+# Install Juiceshop
+ENV RELEASE_JUICESHOP https://github.com/juice-shop/juice-shop/releases/download/v13.2.2/juice-shop-13.2.2_node12_linux_x64.tgz
+RUN curl -L ${RELEASE_JUICESHOP} -o /tmp/juiceshop.tgz \
+&&  tar -xzf /tmp/juiceshop.tgz -C ${WWW} \
+&&  mv $WWW/juice-shop* $WWW/juiceshop \
+&&  rm -r /tmp/juiceshop.tgz
 
+# install railsgoat rails/SQLite
+ENV REPO_RAILSGOAT https://github.com/OWASP/railsgoat.git
+RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat \
+&&  cd $WWW/railsgoat \
+&&  bundle install --without development test openshift mysql \
+&&  echo "cd /var/www/html/railsgoat && rails db:setup" >> /initialize.sh
+
+# install mailcatcher
+RUN gem install mailcatcher
+
+
+
+
+# --- to fix ---
+
+# # install dvws(ockets) - ratchet/reactphp
+# install composer
+# RUN curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+# RUN cd /tmp \
+# &&  php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
+# # install dvws(ockets) - ratchet/reactphp
+# ENV REPO_DVWSOCK https://github.com/interference-security/DVWS.git
+# RUN git clone ${REPO_DVWSOCK} $WWW/dvws \
+# &&  cd $WWW/dvws \
+# &&  composer install
+# RUN echo "sed -i \"s/root/admin/g\" $WWW/dvws/includes/connect-db.php" >> /initialize.sh \ 
+# &&  echo "sed -i \"s/dbpass = \\\"\\\"/dbpass = \\\"\$PASS\\\"/g\" $WWW/dvws/includes/connect-db.php" >> /initialize.sh \
+# &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
+# # convert hardcoded locations
+# RUN sed -i s/wsl.local/localhost/g $WWW/dvws/g blind-sql-injection.php
+
+# install dvws(ervices) - node
+# ENV REPO_DVWSERV https://github.com/snoopysecurity/dvws-node.git
+# RUN git clone ${REPO_DVWSERV} $WWW/dvws-node \
+# &&  cd $WWW/dvws-node \
+# &&  npm install --build-from-source
+# RUN echo "sed -i \"s/<login>root<\/login>/<login>admin<\/login>/g\" $WWW/dvws-node/config.xml" >> /initialize.sh
+# RUN echo "sed -i \"s/<password>mysecretpassword<\/password>/<password>\$PASS<\/password>/g\" $WWW/dvws-node/config.xml" >> /initialize.sh
+# RUN echo "sed -i \"s/dvws.local/localhost/g\" $WWW/dvws-node/config.xml" >> /initialize.sh
+# RUN echo "sed -i \"s/SQL_username=root/SQL_username=admin/g\" $WWW/dvws-node/.env" >> /initialize.sh
+# RUN echo "sed -i \"s/SQL_password=mysecretpassword/SQL_password=\$PASS/g\" $WWW/dvws-node/.env" >> /initialize.sh
+# RUN echo "sed -i \"s/dvws.local\/api/localhost:5000\/api/g\" $WWW/dvws-node/config.xml" >> /initialize.sh
+# RUN echo "cd $WWW/dvws-node && node startup_script.js" >> /initialize.sh
+
+# # Remove pre-installed mysql database and add password to startup script
+# &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
+
+# install django.NV
+RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
+&&  cd $WWW/djangonv \
+&&  pip3 install -r requirements.txt \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
+&&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
+&&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
+&&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
+
+# --- Install DXTE startup files and landing page --- 
 # Copy startup files and config files
 COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
 COPY startup/* /
@@ -229,15 +236,21 @@ RUN chmod +x /*.sh
 # copy landing page and redirect files
 COPY www $WWW/
 
-# open ports
-#   80 - DVWA, Mutillidae, DVWServices, DVWSockets, BuggyBank, Rips
+# port usage
+#   80 - DVWA, Mutillidae, DVWServices, , BuggyBank
 # 1080 - Mailcatcher
 # 3000 - RailsGoat
+# 3306 - mariaDB/MySQL
 # 4000 - Juiceshop
+# 5000 - dvws-node
 # 8000 - django.NV
-# 8080 - 
+# 8080 - DVWServices
 # 8200 - WebGoat
-# 9090 - WebWolf
-EXPOSE 80 1080 3000 4000 8000 8080 8200 9090
+# 8300 - WebWolf
+# 9001 - HSQLDB 
+# 9090 - DVWSockets xmlrpc
+
+
+EXPOSE 80 1080 3000 4000 5000 8000 8080 8200 8300 9090
 
 CMD ["/run.sh"]
