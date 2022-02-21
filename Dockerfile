@@ -186,12 +186,15 @@ RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
 &&  sed -i 's/runserver/runserver 0.0.0.0:8000/g' $WWW/djangonv/runapp.sh \
 &&  echo "cd /var/www/html/djangonv && ./reset_db.sh" >> /initialize.sh
 
-
-# --- to fix ---
-# # WrongSecrets
-# ENV RELEASE_WRONGSECRETS https://github.com/commjoen/wrongsecrets/releases/download/1.3.4/wrongsecrets-1.3.4-SNAPSHOT.jar
-# RUN mkdir $WWW/wrongsecrets \
-# &&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
+# WrongSecrets
+ENV RELEASE_WRONGSECRETS https://github.com/commjoen/wrongsecrets/releases/download/1.3.4/wrongsecrets-1.3.4-SNAPSHOT.jar
+ENV ARG_BASED_PASSWORD="DVXTE IS COOL"
+ENV SPRING_PROFILES_ACTIVE=without-vault
+ENV APP_VERSION="1.3.4"
+ENV DOCKER_ENV_PASSWORD="This is it"
+ENV AZURE_KEY_VAULT_ENABLED=false
+RUN mkdir $WWW/wrongsecrets \
+&&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
 
 # # install dvws(ockets) - ratchet/reactphp
 # install composer
