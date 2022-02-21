@@ -21,8 +21,9 @@ Currently the following training environments are implemented in the Docker cont
   * django.NV     https://github.com/nVisium/django.nV
   * Buggy Bank    https://www.mavensecurity.com/about/webmaven/
   * Mutilidae II  https://github.com/webpwnized/mutillidae.git
-  
+  * WrongSecrets  https://github.com/https://github.com/commjoen/wrongsecrets.git
+
 Next to those, the following tools are installed:
   * Mailcatcher   https://mailcatcher.me/
 
-Once build, the image currently has a size of roughly 2.4 GB
+Once build, the image currently has a size of roughly 2.6 GB
