@@ -84,9 +84,7 @@ RUN curl -L ${RELEASE_JAVA} -o /tmp/java.tar.gz
 RUN tar -xvf /tmp/java.tar.gz -C /usr/bin
 ENV PATH "$PATH:/usr/bin/jdk-17.0.2/bin"
 ENV JAVA_HOME /usr/bin/jdk-17.0.2
-RUN echo 'export PATH="/usr/bin/jdk-17.0.2/bin:$PATH"' >> ~/.bashrc \
-&&  echo 'export JAVA_HOME=/usr/bin/jdk-17.0.2' >> ~/.bashrc \
-&&  rm /tmp/java.tar.gz
+RUN rm /tmp/java.tar.gz
 
 # Install nvm, node, and npm
 ENV NODE_VERSION 12
@@ -107,10 +105,7 @@ ENV PATH "$PATH:/root/.rbenv/bin:/root/.rbenv/plugins/ruby-build/bin:/root/.rben
 ENV PATH "$PATH:/root/.rbenv/versions/2.6.5:/root/.rbenv/shims"
 RUN npm install --global yarn \
 &&  git clone https://github.com/rbenv/rbenv.git ~/.rbenv \
-&&  echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc \
-&&  echo 'eval "$(rbenv init -)"' >> ~/.bashrc \
 &&  git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build \
-&&  echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc \
 &&  rbenv install ${RUBY_VERSION} \
 &&  rbenv global ${RUBY_VERSION} \
 &&  ln -s /root/.rbenv/versions/2.6.5/ruby /usr/bin/ruby \
@@ -242,6 +237,12 @@ RUN chmod +x /*.sh
 
 # copy landing page and redirect files
 COPY www $WWW/
+
+# cleanup
+RUN  apt-get purge -y $buildDeps \
+&&  apt-get autoremove -y \
+&&  apt-get clean -y \
+&&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
 
 # port usage
 #   80 - DVWA, Mutillidae, BuggyBank
