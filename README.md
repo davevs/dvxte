@@ -25,5 +25,6 @@ Currently the following training environments are implemented in the Docker cont
 
 Next to those, the following tools are installed:
   * Mailcatcher   https://mailcatcher.me/
+  * Supervisor    http://supervisord.org/
 
 Once build, the image currently has a size of roughly 2.6 GB
