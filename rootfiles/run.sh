@@ -50,6 +50,6 @@ echo ""
 echo "  Point your browser to http://localhost and start hacking!"
 echo "========================================================================"
 
-exec supervisord -n
+exec supervisord -n -c /etc/supervisor/supervisord.conf
 
 

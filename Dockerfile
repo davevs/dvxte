@@ -36,7 +36,9 @@ ENV buildDeps=' \
       '
 RUN apt-get update \
 && apt-get install -y --no-install-recommends \
-      $buildDeps \
+      $buildDeps
+# split for docker hub
+RUN apt-get install -y --no-install-recommends \
       apache2 \
       dnsutils \
       iputils-ping \
@@ -224,25 +226,27 @@ RUN mkdir $WWW/wrongsecrets \
 # # Remove pre-installed mysql database and add password to startup script
 # &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
-
-
-# --- Install DXTE startup files and landing page --- 
-# Copy startup files and config files
-COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
-COPY startup/* /
-COPY supervisor/* /etc/supervisor/conf.d/
-
-# Set execution rights on startup scripts
-RUN chmod +x /*.sh
-
-# copy landing page and redirect files
-COPY www $WWW/
-
 # cleanup
 RUN  apt-get purge -y $buildDeps \
 &&  apt-get autoremove -y \
 &&  apt-get clean -y \
 &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
+
+# --- Install DXTE startup files and landing page --- 
+# Copy startup files and config files
+COPY conf/my.cnf /etc/mysql/conf.d/my.cnf
+RUN  mkdir runfiles
+COPY runfiles/* /runfiles/
+COPY supervisor/* /etc/supervisor/conf.d/
+COPY rootfiles/* /
+
+
+# Set execution rights on startup scripts
+RUN chmod +x /*.sh
+RUN chmod +x /runfiles/*.sh
+
+# copy landing page and redirect files
+COPY www $WWW/
 
 # port usage
 #   80 - DVWA, Mutillidae, BuggyBank
@@ -256,10 +260,11 @@ RUN  apt-get purge -y $buildDeps \
 # 8200 - WebGoat
 # 8300 - WebWolf
 # 8400 - WrongSecrets
+# 9000 - Supervisor dashboard
 # 9001 - HSQLDB 
 # 9090 - 
 
 
-EXPOSE 80 1080 3000 4000 5000 8000 8080 8200 8300 8400 9090
+EXPOSE 80 1080 3000 4000 5000 8000 8080 8200 8300 8400 9000 9090
 
 CMD ["/run.sh"]
