@@ -21,7 +21,7 @@ Currently the following training environments are implemented in the Docker cont
   * django.NV     https://github.com/nVisium/django.nV
   * Buggy Bank    https://www.mavensecurity.com/about/webmaven/
   * Mutilidae II  https://github.com/webpwnized/mutillidae
-  * WrongSecrets  https://github.com/https://github.com/commjoen/wrongsecrets
+  * WrongSecrets  https://github.com/commjoen/wrongsecrets
 
 Next to those, the following tools are installed:
   * Mailcatcher   https://mailcatcher.me/
