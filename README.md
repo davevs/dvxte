@@ -31,5 +31,5 @@ Currently the container contains the following tools and applications:
   * Mailcatcher   https://mailcatcher.me/
   * Supervisor    http://supervisord.org/
 
-Once build, the image currently has a size of roughly 2.6 GB
+Once build, the image currently has a size of roughly 2.6 GB</br>
 Releases will be pushed to dockerhub; you can pull a compressesed and pre-build version at: https://hub.docker.com/r/dvsteinqx/dvxte 
