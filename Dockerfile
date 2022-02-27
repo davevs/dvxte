@@ -196,6 +196,11 @@ ENV AZURE_KEY_VAULT_ENABLED=false
 RUN mkdir $WWW/wrongsecrets \
 &&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
 
+# install FileUploadLab
+ENV REPO_FUL https://github.com/LunaM00n/File-Upload-Lab.git
+RUN git clone $REPO_FUL /tmp/ful
+RUN mv /tmp/ful/DVFU $WWW/ful
+
 # install CryptOMG
 # using own fork with mariaDB fixes
 ENV REPO_CRYPTOMG https://github.com/davevs/CryptOMG.git
@@ -203,11 +208,18 @@ RUN git clone $REPO_CRYPTOMG $WWW/cryptomg
 RUN sed -i "s/db_user = \"\";/db_user = \"admin\";/g" $WWW/cryptomg/includes/db.inc.php \
 &&  echo "sed -i \"s/db_pass = \\\"\\\"/db_pass = \\\"\$PASS\\\"/g\" $WWW/cryptomg/includes/db.inc.php" >> /initialize.sh
 
-# install FileUploadLab
-ENV REPO_FUL https://github.com/LunaM00n/File-Upload-Lab.git
-RUN git clone $REPO_FUL /tmp/ful
-RUN mv /tmp/ful/DVFU $WWW/ful
+# install CORS lab
+ENV REPO_CORS_LAB https://github.com/incredibleindishell/CORS-vulnerable-Lab.git
+RUN git clone $REPO_CORS_LAB $WWW/cors-lab
+RUN sed -i 's/"billu"/"admin"/g' $WWW/cors-lab/c0nnection.php \
+&&  echo "sed -i \"s/b0x_billu/\$PASS/g\" $WWW/cors-lab/c0nnection.php" >> /initialize.sh \
+&&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE ica_lab\"" >> /initialize.sh \
+&&  echo "mysql -uadmin -p\$PASS ica_lab < \$WWW/cors-lab/database/ica_lab.sql" >> /initialize.sh
 
+# install SSRF lab
+ENV REPO_SSRF_LAB https://github.com/incredibleindishell/SSRF_Vulnerable_Lab.git
+RUN git clone $REPO_SSRF_LAB /tmp/ssrf-lab \
+&&  mv /tmp/ssrf-lab/www $WWW/ssrf-lab
 
 # # install dvws(ockets) - ratchet/reactphp
 # install composer
