@@ -1,1 +1,1 @@
-docker build -t davevs/dvxte --rm .
+docker build -t davevs/dvxte --rm --compress .

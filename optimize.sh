@@ -1,1 +1,1 @@
-docker build -t davevs/dvxte-opt --rm --squash .
+docker build -t davevs/dvxte-opt --rm --compress .

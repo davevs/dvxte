@@ -46,6 +46,7 @@ RUN apt-get install -y --no-install-recommends \
       libapache2-mod-perl2 \
       libcgi-pm-perl \
       libgdbm3 \
+      libmcrypt4 \
       libtool \
       libxml2 \ 
       libyaml-0-2 \
@@ -53,6 +54,7 @@ RUN apt-get install -y --no-install-recommends \
       nodejs \
       php-curl \
       php-mbstring \
+      php-mcrypt \
       php-mysql \
       php-gd \
       php-xml \
@@ -124,7 +126,7 @@ RUN git clone ${REPO_DVWA} $WWW/dvwa \
 &&  sed -i "s/public_key' ]  = ''/public_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/private_key' ] = ''/private_key' ] = 'TaQ185RFuWM'/g" $WWW/dvwa/config/config.inc.php \
 &&  sed -i "s/'default_security_level' ] = 'impossible'/'default_security_level' ] = 'low'/g" $WWW/dvwa/config/config.inc.php \
-&&  echo "sed -i \"s/'db_user' ]     = 'dvwa';/'db_user' ]     = 'admin';/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh \
+&&  sed -i "s/'db_user' ]     = 'dvwa';/'db_user' ]     = 'admin';/g" $WWW/dvwa/config/config.inc.php \
 &&  echo "sed -i \"s/p@ssw0rd/\$PASS/g\" $WWW/dvwa/config/config.inc.php" >> /initialize.sh
 
 # install & configure NOWASP / mutillidae II - php/mysql
@@ -175,7 +177,8 @@ RUN git clone ${REPO_RAILSGOAT} $WWW/railsgoat \
 RUN gem install mailcatcher
 
 # install django.NV
-RUN git clone https://github.com/davevs/django.nV.git $WWW/djangonv \
+ENV REPO_DJANGONV https://github.com/nVisium/django.nV.git
+RUN git clone $REPO_DJANGONV $WWW/djangonv \
 &&  cd $WWW/djangonv \
 &&  pip3 install -r requirements.txt \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
@@ -192,6 +195,14 @@ ENV DOCKER_ENV_PASSWORD="This is it"
 ENV AZURE_KEY_VAULT_ENABLED=false
 RUN mkdir $WWW/wrongsecrets \
 &&  curl -L ${RELEASE_WRONGSECRETS} -o $WWW/wrongsecrets/wrongsecrets.jar
+
+# install CryptOMG
+# using own fork with mariaDB fixes
+ENV REPO_CRYPTOMG https://github.com/davevs/CryptOMG.git
+RUN git clone $REPO_CRYPTOMG $WWW/cryptomg
+RUN sed -i "s/db_user = \"\";/db_user = \"admin\";/g" $WWW/cryptomg/includes/db.inc.php \
+&&  echo "sed -i \"s/db_pass = \\\"\\\"/db_pass = \\\"\$PASS\\\"/g\" $WWW/cryptomg/includes/db.inc.php" >> /initialize.sh
+
 
 # # install dvws(ockets) - ratchet/reactphp
 # install composer
