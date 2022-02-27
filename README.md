@@ -13,18 +13,23 @@ This is a very bad idea and probably one of the best examples of how not to use 
 DVXTE is a docker container with several vulnerable applications.
 By using a docker container it's easy to setup and can easily be reset to it's starting point.
 
-Currently the following training environments are implemented in the Docker container:
+Currently the container contains the following tools and applications:
+
+**Vulnerable applications:**
   * DVWA          https://github.com/digininja/DVWA
   * WebGoat       https://github.com/WebGoat/WebGoat
   * Juiceshop     https://github.com/bkimminich/juice-shop
   * Railsgoat     https://github.com/OWASP/railsgoat
   * django.NV     https://github.com/nVisium/django.nV
   * Buggy Bank    https://www.mavensecurity.com/about/webmaven/
-  * Mutilidae II  https://github.com/webpwnized/mutillidae.git
-  * WrongSecrets  https://github.com/https://github.com/commjoen/wrongsecrets.git
+  * Mutilidae II  https://github.com/webpwnized/mutillidae
 
-Next to those, the following tools are installed:
+**Challenges**
+  * WrongSecrets  https://github.com/commjoen/wrongsecrets
+
+**Tools**
   * Mailcatcher   https://mailcatcher.me/
   * Supervisor    http://supervisord.org/
 
-Once build, the image currently has a size of roughly 2.6 GB
+Once build, the image currently has a size of roughly 2.6 GB</br>
+Releases will be pushed to dockerhub; you can pull a compressesed and pre-build version at: https://hub.docker.com/r/dvsteinqx/dvxte 
