@@ -26,6 +26,8 @@ Currently the container contains the following tools and applications:
 
 **Challenges**
   * WrongSecrets  https://github.com/commjoen/wrongsecrets
+  * CryptOMG      https://github.com/SpiderLabs/CryptOMG
+  * FileUploadLab https://github.com/LunaM00n/File-Upload-Lab
 
 **Tools**
   * Mailcatcher   https://mailcatcher.me/
