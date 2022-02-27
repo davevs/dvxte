@@ -203,6 +203,11 @@ RUN git clone $REPO_CRYPTOMG $WWW/cryptomg
 RUN sed -i "s/db_user = \"\";/db_user = \"admin\";/g" $WWW/cryptomg/includes/db.inc.php \
 &&  echo "sed -i \"s/db_pass = \\\"\\\"/db_pass = \\\"\$PASS\\\"/g\" $WWW/cryptomg/includes/db.inc.php" >> /initialize.sh
 
+# install FileUploadLab
+ENV REPO_FUL https://github.com/LunaM00n/File-Upload-Lab.git
+RUN git clone $REPO_FUL /tmp/ful
+RUN mv /tmp/ful/DVFU $WWW/ful
+
 
 # # install dvws(ockets) - ratchet/reactphp
 # install composer
@@ -237,11 +242,11 @@ RUN sed -i "s/db_user = \"\";/db_user = \"admin\";/g" $WWW/cryptomg/includes/db.
 # # Remove pre-installed mysql database and add password to startup script
 # &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
 
-# cleanup
-RUN  apt-get purge -y $buildDeps \
-&&  apt-get autoremove -y \
-&&  apt-get clean -y \
-&&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
+# # cleanup
+# RUN  apt-get purge -y $buildDeps \
+# &&  apt-get autoremove -y \
+# &&  apt-get clean -y \
+# &&  rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/* /var/tmp/*
 
 # --- Install DXTE startup files and landing page --- 
 # Copy startup files and config files
@@ -260,7 +265,7 @@ RUN chmod +x /runfiles/*.sh
 COPY www $WWW/
 
 # port usage
-#   80 - DVWA, Mutillidae, BuggyBank
+#   80 - DVWA, Mutillidae, BuggyBank, CryptOMG, FUL
 # 1080 - Mailcatcher
 # 3000 - RailsGoat
 # 3306 - mariaDB/MySQL
