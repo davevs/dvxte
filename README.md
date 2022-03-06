@@ -28,6 +28,8 @@ Currently the container contains the following tools and applications:
   * WrongSecrets  https://github.com/commjoen/wrongsecrets
   * CryptOMG      https://github.com/SpiderLabs/CryptOMG
   * FileUploadLab https://github.com/LunaM00n/File-Upload-Lab
+  * CORS Lab      https://github.com/incredibleindishell/CORS-vulnerable-Lab
+  * SSRF Lab      https://github.com/incredibleindishell/SSRF_Vulnerable_Lab
 
 **Tools**
   * Mailcatcher   https://mailcatcher.me/
