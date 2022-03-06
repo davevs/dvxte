@@ -46,7 +46,7 @@ RUN apt-get install -y --no-install-recommends \
 
 # apache stack
 RUN apt-get install -y --no-install-recommends \
-      apache2ntpdate    
+      apache2    
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # perl stack
