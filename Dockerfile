@@ -1,88 +1,91 @@
-FROM debian:stretch-slim
+FROM debian:buster-slim
 MAINTAINER Dave van Stein <dvanstein@qxperts.io>
 
 # --- Set up base environment ---
 ARG DEBIAN_FRONTEND noninteractive
-
-# Install build environment and dependencies
+# get the latest updates
+RUN apt-get update
+# build dependencies that will be removed later
 ENV buildDeps=' \
-      autoconf \
-      bison \
-      build-essential \
-      bzip2 \
       curl \ 
-      default-libmysqlclient-dev \          
-      g++ \
-      gcc \
-      git \
-      libbz2-dev \
-      libcurl4-openssl-dev \
-      libffi-dev \
-      libgdbm-dev \
-      libglib2.0-dev \  
-      libncurses-dev \
-      libreadline-dev \
-      libssl-dev \
-      libsqlite3-dev \
-      libxml2-dev \
-      libxslt-dev \
-      libyaml-dev \
-      python3-pip \
-      make \
-	unzip \
       wget \
+      git \
+      bzip2 \
+	unzip \
       xz-utils \
-      zlib1g-dev \
-      '
-RUN apt-get update \
-&& apt-get install -y --no-install-recommends \
-      $buildDeps
-# split for docker hub
-RUN apt-get install -y --no-install-recommends \
-      apache2 \
-      dnsutils \
-      iputils-ping \
-      libapache2-mod-php \
-      libapache2-mod-perl2 \
-      libcgi-pm-perl \
-      libgdbm3 \
-      libmcrypt4 \
-      libtool \
-      libxml2 \ 
-      libyaml-0-2 \
-      mysql-server \
-      nodejs \
-      php-curl \
-      php-mbstring \
-      php-mcrypt \
-      php-mysql \
-      php-gd \
-      php-xml \
-      procps \
-      python3 \
-      pwgen \
+      gnupg \
+      g++ \
+      make \
+      libreadline-dev \
+      libsqlite3-dev \      
       shared-mime-info \
       software-properties-common \
-      sqlite3 \
-      supervisor 
-
-# get the latest updates
-RUN apt-get upgrade
+      zlib1g-dev \
+      '
+RUN apt-get install -y --no-install-recommends \
+      $buildDeps
 
 # --- Install DXTE boilerplate ---
-# create intialize script for configuration items during boot
+# create intialize script and install required tools during boot
 ENV WWW /var/www/html
 RUN touch /initialize.sh 
+RUN apt-get install -y --no-install-recommends \
+      pwgen \
+      supervisor 
 
-# configure apache, php, mysql
+# application dependencies
+RUN apt-get install -y --no-install-recommends \
+      dnsutils \
+      iputils-ping \
+      libmcrypt4    
+
+# databases
+RUN apt-get install -y --no-install-recommends \
+      mariadb-server \
+      sqlite3
+
+# apache stack
+RUN apt-get install -y --no-install-recommends \
+      apache2ntpdate    
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# perl stack
+RUN apt-get install -y --no-install-recommends \
+      libapache2-mod-perl2 \
+      libcgi-pm-perl 
+
+# php stack
 ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-# php config
-&&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php/7.0/apache2/php.ini \
-&&  echo 'session.save_path = "/tmp"' >> /etc/php/7.0/apache2/php.ini
+RUN apt-get install -y --no-install-recommends \
+      php \
+      libmcrypt-dev \
+      libapache2-mod-php \
+      php-curl \
+      php-mbstring \
+      php-mysql \
+      php-gd \
+      php-pear \
+      php-dev \
+      php-xml
 
-# install java
+RUN curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+RUN apt-get update
+RUN apt-get install php7.3-mcrypt
+# RUN pecl config-set php_ini /etc/php/7.3/apache2/php.ini
+# RUN echo "" | pecl install mcrypt
+RUN echo 'extension=mcrypt.so' >> /etc/php/7.3/apache2/php.ini \
+&&  echo 'session.save_path = "/tmp"' >> /etc/php/7.3/apache2/php.ini \
+&&  sed -i 's/allow_url_include = Off/allow_url_include = On/g' /etc/php/7.3/apache2/php.ini
+
+# install python stack
+RUN apt-get install -y --no-install-recommends \
+      python3 \
+      python3-pip \
+      python3-setuptools
+
+# install java stack
 ENV RELEASE_JAVA https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz
 RUN curl -L ${RELEASE_JAVA} -o /tmp/java.tar.gz
 RUN tar -xvf /tmp/java.tar.gz -C /usr/bin
@@ -90,7 +93,7 @@ ENV PATH "$PATH:/usr/bin/jdk-17.0.2/bin"
 ENV JAVA_HOME /usr/bin/jdk-17.0.2
 RUN rm /tmp/java.tar.gz
 
-# Install nvm, node, and npm
+# Install nvm, node, and npm stack
 ENV NODE_VERSION 12
 ENV RELEASE_NVM https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh
 RUN curl ${RELEASE_NVM} -o /tmp/install.sh \
@@ -178,8 +181,10 @@ RUN gem install mailcatcher
 
 # install django.NV
 ENV REPO_DJANGONV https://github.com/nVisium/django.nV.git
-RUN git clone $REPO_DJANGONV $WWW/djangonv \
-&&  cd $WWW/djangonv \
+RUN git clone $REPO_DJANGONV $WWW/djangonv
+# upgrade django version to play well with python 3.7
+RUN sed -i 's/1.8.3/1.8.19/g' $WWW/djangonv/requirements.txt
+RUN cd $WWW/djangonv \
 &&  pip3 install -r requirements.txt \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/reset_db.sh \
 &&  sed -i 's/python/python3/g' $WWW/djangonv/runapp.sh \
@@ -202,25 +207,20 @@ RUN git clone $REPO_FUL /tmp/ful
 RUN mv /tmp/ful/DVFU $WWW/ful
 
 # install CryptOMG
-# using own fork with mariaDB fixes
+# using own fork with php7 & mariaDB fixes
 ENV REPO_CRYPTOMG https://github.com/davevs/CryptOMG.git
 RUN git clone $REPO_CRYPTOMG $WWW/cryptomg
 RUN sed -i "s/db_user = \"\";/db_user = \"admin\";/g" $WWW/cryptomg/includes/db.inc.php \
 &&  echo "sed -i \"s/db_pass = \\\"\\\"/db_pass = \\\"\$PASS\\\"/g\" $WWW/cryptomg/includes/db.inc.php" >> /initialize.sh
 
-# install CORS lab
-ENV REPO_CORS_LAB https://github.com/incredibleindishell/CORS-vulnerable-Lab.git
-RUN git clone $REPO_CORS_LAB $WWW/cors-lab
-RUN sed -i 's/"billu"/"admin"/g' $WWW/cors-lab/c0nnection.php \
-&&  echo "sed -i \"s/b0x_billu/\$PASS/g\" $WWW/cors-lab/c0nnection.php" >> /initialize.sh \
-&&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE ica_lab\"" >> /initialize.sh \
-&&  echo "mysql -uadmin -p\$PASS ica_lab < \$WWW/cors-lab/database/ica_lab.sql" >> /initialize.sh
-
-# install SSRF lab
-ENV REPO_SSRF_LAB https://github.com/incredibleindishell/SSRF_Vulnerable_Lab.git
-RUN git clone $REPO_SSRF_LAB /tmp/ssrf-lab \
-&&  mv /tmp/ssrf-lab/www $WWW/ssrf-lab
-
+# install DVGQL
+ENV REPO_DVGQL https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application.git
+RUN git clone $REPO_DVGQL $WWW/dvgql
+RUN cd $WWW/dvgql \
+&&  pip3 install -r requirements.txt \
+&&  python3 setup.py
+RUN sed -i 's/127.0.0.1/0.0.0.0/g' $WWW/dvgql/config.py
+ 
 # # install dvws(ockets) - ratchet/reactphp
 # install composer
 # RUN curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
@@ -251,9 +251,6 @@ RUN git clone $REPO_SSRF_LAB /tmp/ssrf-lab \
 # RUN echo "sed -i \"s/dvws.local\/api/localhost:5000\/api/g\" $WWW/dvws-node/config.xml" >> /initialize.sh
 # RUN echo "cd $WWW/dvws-node && node startup_script.js" >> /initialize.sh
 
-# # Remove pre-installed mysql database and add password to startup script
-# &&  echo "mysql -uadmin -p\$PASS -e \"CREATE DATABASE dvws_db\"" >> /initialize.sh
-
 # # cleanup
 # RUN  apt-get purge -y $buildDeps \
 # &&  apt-get autoremove -y \
@@ -282,17 +279,14 @@ COPY www $WWW/
 # 3000 - RailsGoat
 # 3306 - mariaDB/MySQL
 # 4000 - Juiceshop
-# 5000 - 
+# 5013 - DVGQL
 # 8000 - django.NV
-# 8080 - 
 # 8200 - WebGoat
 # 8300 - WebWolf
 # 8400 - WrongSecrets
 # 9000 - Supervisor dashboard
 # 9001 - HSQLDB 
-# 9090 - 
 
-
-EXPOSE 80 1080 3000 4000 5000 8000 8080 8200 8300 8400 9000 9090
+EXPOSE 80 1080 3000 4000 5013 8000 8200 8300 8400 9000
 
 CMD ["/run.sh"]
