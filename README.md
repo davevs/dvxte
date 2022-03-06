@@ -16,20 +16,21 @@ By using a docker container it's easy to setup and can easily be reset to it's s
 Currently the container contains the following tools and applications:
 
 **Vulnerable applications:**
-  * DVWA          https://github.com/digininja/DVWA
-  * WebGoat       https://github.com/WebGoat/WebGoat
   * Juiceshop     https://github.com/bkimminich/juice-shop
   * Railsgoat     https://github.com/OWASP/railsgoat
   * django.NV     https://github.com/nVisium/django.nV
   * Buggy Bank    https://www.mavensecurity.com/about/webmaven/
+
+**Exercise Environments**
+  * WebGoat       https://github.com/WebGoat/WebGoat
+  * DVWA          https://github.com/digininja/DVWA
   * Mutilidae II  https://github.com/webpwnized/mutillidae
 
-**Challenges**
+**Challenge labs**
   * WrongSecrets  https://github.com/commjoen/wrongsecrets
   * CryptOMG      https://github.com/SpiderLabs/CryptOMG
   * FileUploadLab https://github.com/LunaM00n/File-Upload-Lab
-  * CORS Lab      https://github.com/incredibleindishell/CORS-vulnerable-Lab
-  * SSRF Lab      https://github.com/incredibleindishell/SSRF_Vulnerable_Lab
+  * DVGQL		  https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application
 
 **Tools**
   * Mailcatcher   https://mailcatcher.me/
