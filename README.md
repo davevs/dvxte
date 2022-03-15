@@ -42,9 +42,9 @@ Once build, the image currently has a size of roughly 2.6 GB</br>
 Releases will be pushed to dockerhub; you can pull a compressesed and pre-build version at: https://hub.docker.com/r/dvsteinqx/dvxte 
 
 ## pulling the image
-When you pull the image, make sure you add the version number, like e.g.: 
-docker pull dvsteinqx/dvxte:0.2
+When you pull the image, make sure you add the version number, like e.g.: <br>
+`docker pull dvsteinqx/dvxte:0.2`
 
 ## running the image
-after pulling the image you can run it with the following command:
-docker run --name dvxte -p 80:80 -p 1080:1080 -p 3000:3000 -p 4000:4000 -p 5013:5013 -p 8000:8000 -p 8200:8200 -p 8300:8300 -p 8400:8400 -p 9000:9000 dvsteinqx/dvxte
+after pulling the image you can run it with the following command:<br>
+`docker run --name dvxte -p 80:80 -p 1080:1080 -p 3000:3000 -p 4000:4000 -p 5013:5013 -p 8000:8000 -p 8200:8200 -p 8300:8300 -p 8400:8400 -p 9000:9000 dvsteinqx/dvxte`
