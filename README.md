@@ -4,8 +4,8 @@
 When I started at Xebia in 2015, Docker was hip and new and I wanted to understand it better. As I was getting tired of continuously rebuilding vulnerable testing environments I thought it was a nice idea to see if I could put them all in 1 docker container, so that a simple restart would refresh everything. I also wanted to see if I could break docker by putting so many things in 1 container. Turns out docker is really flexible and has no problem with running multiple webservers and databases at the same time. In 2017 I lost interest in the project as I was no longer using it and I didn't feel like maintaining all the dependencies anymore.
 In 2022 @commjoen challenged me to revamp the project, so here we are :)
 
-## Note
-This is a very bad idea and probably one of the best examples of how not to use docker.</br>
+## Disclaimer
+This is a very bad idea and probably one of the best examples of how not to use docker.<br><br>
 ![](assets/itruns.jpg)
 
 
